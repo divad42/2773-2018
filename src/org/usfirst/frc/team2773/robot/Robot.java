@@ -119,9 +119,9 @@ public class Robot extends TimedRobot {
    }
    
    public void grabber() {
-      if(stick.getRawButton(1))  // trigger used to eject the cube
+      if(stick.getRawButton(1))  // trigger is used to eject the cube
          setGrabbers(0.5);
-      else if(stick.getRawButton(2))   // side button used to take in the cube
+      else if(stick.getRawButton(2))   // side is button used to take in the cube
          setGrabbers(-0.5);
    }
 }
