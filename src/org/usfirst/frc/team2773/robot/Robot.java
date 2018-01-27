@@ -1,5 +1,5 @@
-// Version 0.0.0
-// Added the base code, plus rudamentary driving and grabbing code.
+// Version 0.0.1
+// Added encoder test code
 
 package org.usfirst.frc.team2773.robot;
 
@@ -7,8 +7,10 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Victor;
+import edu.wpi.first.wpilibj.command.PrintCommand;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.Encoder;
 
 
 /**
@@ -35,6 +37,10 @@ public class Robot extends TimedRobot {
    public MecanumDrive drive;
    public Joystick gamepad;
    public Joystick stick;
+   
+   public Encoder testEncoder;
+   
+   public PrintCommand printer;
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -60,6 +66,11 @@ public class Robot extends TimedRobot {
       
       gamepad = new Joystick(0);
       stick = new Joystick(1);
+      
+      testEncoder = new Encoder(0, 1);
+      
+      printer = new PrintCommand("abcderfjkdjs");
+      printer.start();
 	}
 
 	/**
@@ -102,8 +113,10 @@ public class Robot extends TimedRobot {
 	 */
 	@Override
 	public void teleopPeriodic() {
-      drive.driveCartesian(gamepad.getRawAxis(1), gamepad.getRawAxis(0), gamepad.getRawAxis(2));
-      grabber();
+      /*drive.driveCartesian(gamepad.getRawAxis(1), gamepad.getRawAxis(0), gamepad.getRawAxis(2));
+      grabber();*/
+      
+      output();
 	}
 
 	/**
@@ -111,6 +124,8 @@ public class Robot extends TimedRobot {
 	 */
 	@Override
 	public void testPeriodic() {
+		
+		
 	}
    
    public void setGrabbers(double val) {
@@ -123,6 +138,12 @@ public class Robot extends TimedRobot {
          setGrabbers(0.5);
       else if(stick.getRawButton(2))   // side button is used to take in the cube
          setGrabbers(-0.5);
+   }
+   
+   public void output() {
+	   SmartDashboard.putNumber("distance", testEncoder.getDistance());
+		SmartDashboard.putBoolean("direction", testEncoder.getDirection());
+		SmartDashboard.putNumber("rate", testEncoder.getRate());
    }
 }
 
