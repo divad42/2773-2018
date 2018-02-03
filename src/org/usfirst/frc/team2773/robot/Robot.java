@@ -1,6 +1,5 @@
-
-// Version 0.0.3
-// Added drive method
+// Version 0.0.2
+// Added primitive autonomous code
 
 package org.usfirst.frc.team2773.robot;
 
@@ -43,19 +42,14 @@ public class Robot extends TimedRobot {
    
    public PrintCommand printer;
    
-   public double dist;
+   public double distance;
+   public int autoStep;
    
-
-   public int autoStep;//counter for the # of steps taken
-   
-   public double curXVal;
-   public double curYVal;
-   public double rotate;
+   public double curXVel;
+   public double curYVel;
+   public double curRot;
    public double maxSpeed;
-   public double minSpeed;
    public double accel;
-   //public double timeToFull;---- later we will use this in an equation to calculate the acceleration
-
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -84,17 +78,13 @@ public class Robot extends TimedRobot {
       
       testEncoder = new Encoder(0, 1);
       
+      curXVel = 0;
+      curYVel = 0;
+      curRot = 0;
+      accel = 0.01;
+      
       printer = new PrintCommand("abcderfjkdjs");
       printer.start();
-
-      
-      curXVal = 0;//vars for the current values used in the drive method.
-      curYVal = 0;
-      rotate = 0;
-      maxSpeed = 1;//value in seconds
-      minSpeed = -1;//value in seconds
-      accel = 0.001;//change from constant later
-
 	}
 
 	/**
@@ -113,8 +103,8 @@ public class Robot extends TimedRobot {
 		/*m_autoSelected = m_chooser.getSelected();
 		// m_autoSelected = SmartDashboard.getString("Auto Selector",
 		// 		kDefaultAuto);
-		System.out.println("Auto selected: " + m_autoSelected);*/'
-      
+		System.out.println("Auto selected: " + m_autoSelected);*/
+
       setDist(0);
       autoStep = 0;
 	}
@@ -134,7 +124,7 @@ public class Robot extends TimedRobot {
 				break;
 		}*/
       
-      if(autoStep == 0 && dist < 12)
+      if(autoStep == 0 && distance < 12)
          drive.driveCartesian(0, 1, 0);
       else if(autoStep == 0) {
          drive.driveCartesian(0, 0, 0);
@@ -142,6 +132,44 @@ public class Robot extends TimedRobot {
       }
       
 	}
+   
+   public void drive(double x, double y, double z) {
+      if(x > 0 && x <= maxSpeed)
+         curXVel += accel;
+      else if(x < 0 && x >= (-1 * maxSpeed))
+         curXVel -= accel;
+      if(y > 0 && y <= maxSpeed)
+         curYVel += accel;
+      else if(y < 0 && y >= (-1 * maxSpeed))
+         curYVel -= accel;
+      if(z > 0 && z <= maxSpeed)
+         curRot += accel;
+      else if(z < 0 && z >= (-1 * maxSpeed))
+         curRot -= accel;
+      if(x == 0)
+         curXVel = 0;
+      if(y == 0)
+         curYVel = 0;
+      if(z == 0)
+         curRot = 0;
+      drive.driveCartesian( curYVel, curXVel, curRot);
+   }
+   
+   public void driveForward() {
+      drive.driveCartesian( 0.0, 1.0, 0.0);
+   }
+      
+   public double getDist() {
+      return distance;
+   }
+   
+   public void setDist(double d) {
+      distance = d;
+   }
+   
+   public double speedFromEncoder() {
+      return 4;
+   }
 
 	/**
 	 * This function is called periodically during operator control.
@@ -188,24 +216,6 @@ public class Robot extends TimedRobot {
    public double getDist() {
       return dist;
    }
-
-   
-   public void drive(double x, double y, double z){
-      if(curXVal < x && curXVal > 0)
-         curXVal += accel;
-      if(curYVal < y && cur YVal > 0)
-         curYVal += accel;
-      if(rotate < z && rotate > 0)
-         rotate += accel;
-      if(curXVal > x && curXVal < 0)
-         curXVal -= accel;
-      if(curYVal > y && cur YVal < 0)
-         curYVal -= accel;
-      if(rotate > z && rotate < 0)
-         rotate -= accel;
-      drive.driveCartesian(curXVal, curYVal, rotate);
-   }
-
 }
 
                                                   /*:-                          
