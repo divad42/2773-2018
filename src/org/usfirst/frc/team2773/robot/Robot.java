@@ -45,7 +45,6 @@ public class Robot extends TimedRobot {
    public double curXVel;
    public double curYVel;
    public double curRot;
-   public double acceleration = .01;
    
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -95,6 +94,9 @@ public class Robot extends TimedRobot {
 		// m_autoSelected = SmartDashboard.getString("Auto Selector",
 		// 		kDefaultAuto);
 		System.out.println("Auto selected: " + m_autoSelected);*/
+      
+      public double acceleration = .01;
+      
 	}
 
 	/**
@@ -157,24 +159,18 @@ public class Robot extends TimedRobot {
    }
 
    public void drive(double XVel,double YVel, double Rot, double accel, double maxSpeed){
-      if(XVel > 0 && XVel <= maxSpeed){
+      if(XVel > 0 && curXVel <= maxSpeed)
          curXVel += accel;
-      }
-      else if(XVel < 0 && XVel >= (maxSpeed * -1) ){
+      else if(XVel < 0 && curXVel >= (maxSpeed * -1) )
          curXVel -= accel;
-      }
-      if(YVel > 0 && YVel <= maxSpeed){
+      if(YVel > 0 && curYVel <= maxSpeed)
          curYVel += accel;
-      }
-      else if(YVel < 0 && YVel >= (maxSpeed * -1) ){
+      else if(YVel < 0 && curYVel >= (maxSpeed * -1) )
          curYVel -= accel;
-      }
-      if(Rot > 0 && Rot <= maxSpeed){
+      if(Rot > 0 && curRot <= maxSpeed)
          curRot += accel;
-      }
-      else if(Rot < 0 && Rot >= (maxSpeed * -1) ){
+      else if(Rot < 0 && curRot >= (maxSpeed * -1) )
          curRot -= accel;
-      }
       if(XVel == 0)
          curXVel = 0;
       if(YVel == 0)
@@ -220,3 +216,42 @@ public class Robot extends TimedRobot {
  `ymmd/`                               .hmmmmo.                                     
 ommmmh/`                               .smmmmdy/.                                  
 `:::::::.   Mr. Meckling is Max's dad.  `:::::::*/
+
+
+
+
+
+
+
+
+
+
+
+
+                                                  /*:-                          
+                                                 /hdms                          
+                                                `ommmh.                          
+                                               `+mmmd/os+-`                      
+                                             `:ohmmmmmmmmmmhs/                    
+                                    -+oooo/+sdmmmjamesmmmmmmmd``                  
+             ```...--..```        `+dmyyyhmmmmmmmmmmmmmmmmmmmmhyy+                
+      ``-/+syhhdmmmmmmmdhyso+++++sydms    hmmmmdmmmmmmyeahwonmmmmd`               
+     /ydmmmmmmmpriyannammmmmmmy:./oo/`    .+so/./hmmmmmmmmmmmmmmmm+               
+      -odmmmmmmmmmmmmmmmmmmmmh`                  .dmmmmmmmmmmmmmmdh               
+     .-`.+hmmmmmtyler84121mmmms                  hmmmmmmmmmdhddy+-`               
+    `odmmdhshmmmmmmmmmmmmmmmmmd/     `+shys/      odmmmmdy+-` ``                   
+   `ymmmmmmmmmmmmmmmrohanmmm:.      `hmmmmmmy      `-omm-                          
+   smmmrigelmmmmmmmmmmmmmmmm        :irondogz`       -mm:                          
+  `mmmmmmmmmmmmmmcolemmmmmmmyo/`     ommmmmd/     `/oymd.                          
+  -mmmmmmmmmmmmmmmmmmmmmmmmmmmms      `:+/:`     `dmds+.                           
+  `dmmmtyler5479mmmmd/`hmmmmmd:                  smm/                             
+   ommmmmmmmmmmmmmmdo` `oydmmmh-   ``        ``   /mmo                             
+   :mmmbrennanmmmdo.     ``-+syhsohddh-    +hddy+hmd+`                             
+   :mmmmmmmmmmmd+.            ``.-:+hmy-.-:md+oyyy+`                               
+   omhannahmmh+`                    /mmddddm/  ``                                  
+   `dmmmmmmmy/`                      -mmmmmmm                                       
+   +mmmmmds-`                         msquidm                                       
+  .dmmmh+.                            .mmmmmm`                                      
+ `ymmd/`                               .hmmmmo.                                     
+ommmmh/`                               .smmmmdy/.                                  
+`:::::::.       Programming  2018       `:::::::*/
