@@ -1,5 +1,5 @@
-// Version 0.0.0
-// Added the base code, plus rudamentary driving and grabbing code.
+// Version 0.0.2
+// Added primitive autonomous code
 
 package org.usfirst.frc.team2773.robot;
 
@@ -7,8 +7,10 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Victor;
+import edu.wpi.first.wpilibj.command.PrintCommand;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.Encoder;
 
 
 /**
@@ -35,6 +37,14 @@ public class Robot extends TimedRobot {
    public MecanumDrive drive;
    public Joystick gamepad;
    public Joystick stick;
+   
+   public Encoder testEncoder;
+   
+   public PrintCommand printer;
+   
+   public double dist;
+   
+   public int autoStep;//counter for the # of steps taken
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -60,6 +70,11 @@ public class Robot extends TimedRobot {
       
       gamepad = new Joystick(0);
       stick = new Joystick(1);
+      
+      testEncoder = new Encoder(0, 1);
+      
+      printer = new PrintCommand("abcderfjkdjs");
+      printer.start();
 	}
 
 	/**
@@ -78,7 +93,10 @@ public class Robot extends TimedRobot {
 		/*m_autoSelected = m_chooser.getSelected();
 		// m_autoSelected = SmartDashboard.getString("Auto Selector",
 		// 		kDefaultAuto);
-		System.out.println("Auto selected: " + m_autoSelected);*/
+		System.out.println("Auto selected: " + m_autoSelected);*/'
+      
+      setDist(0);
+      autoStep = 0;
 	}
 
 	/**
@@ -86,7 +104,7 @@ public class Robot extends TimedRobot {
 	 */
 	@Override
 	public void autonomousPeriodic() {
-		switch (m_autoSelected) {
+		/*switch (m_autoSelected) {
 			case kCustomAuto:
 				// Put custom auto code here
 				break;
@@ -94,11 +112,15 @@ public class Robot extends TimedRobot {
 			default:
 				// Put default auto code here
 				break;
-		}
-      public void driveStraight(int distance){
-         for(int i = 0; i < distance; i++)
-            drive.driveCartesian(0, speedFromEncoder, 0);
+		}*/
+      
+      if(autoStep == 0 && dist < 12)
+         drive.driveCartesian(0, 1, 0);
+      else if(autoStep == 0) {
+         drive.driveCartesian(0, 0, 0);
+         autoStep ++;
       }
+      
 	}
 
 	/**
@@ -106,8 +128,10 @@ public class Robot extends TimedRobot {
 	 */
 	@Override
 	public void teleopPeriodic() {
-      drive.driveCartesian(gamepad.getRawAxis(1), gamepad.getRawAxis(0), gamepad.getRawAxis(2));
-      grabber();
+      /*drive.driveCartesian(gamepad.getRawAxis(1), gamepad.getRawAxis(0), gamepad.getRawAxis(2));
+      grabber();*/
+      
+      output();
 	}
 
 	/**
@@ -115,6 +139,8 @@ public class Robot extends TimedRobot {
 	 */
 	@Override
 	public void testPeriodic() {
+		
+		
 	}
    
    public void setGrabbers(double val) {
@@ -129,11 +155,19 @@ public class Robot extends TimedRobot {
          setGrabbers(-0.5);
    }
    
-   public double speedFromEncoder()
-   {
-      return 4;
+   public void output() {
+	   SmartDashboard.putNumber("distance", testEncoder.getDistance());
+		SmartDashboard.putBoolean("direction", testEncoder.getDirection());
+		SmartDashboard.putNumber("rate", testEncoder.getRate());
    }
-
+   
+   public void setDist(double val) {
+      dist = val;
+   }
+   
+   public double getDist() {
+      return dist;
+   }
 }
 
                                                   /*:-                          
@@ -144,7 +178,7 @@ public class Robot extends TimedRobot {
                                     -+oooo/+sdmmmmbmanmmmmmmmd``                  
              ```...--..```        `+dmyyyhmmmmmmmmmneedsmmmmmmhyy+                
       ``-/+syhhdmmmmmmmdhyso+++++sydms    hmmmmdmmmmtommmmmmmmmmmd`               
-     /ydmmmmmmmmmmmmmmmmmmmmmmy:./oo/`    .+so/./hmmmstopmmmmmmmmm+               
+     /ydmmmmmmmmmmmmmmmmmmmmmmy:./oo/`    .+so/./hmmmstopmmquichem+               
       -odmmmmmmmjaredmmmmmmmmh`                  .dmmmmmmmmmmmmmmdh               
      .-`.+hmmmmmmismmmmmmmmmmms                  hmmmmmmmmmdhddy+-`               
     `odmmdhshmmmmmthemmmmmmmmmd/     `+shys/      odmmmmdy+-` ``                   
