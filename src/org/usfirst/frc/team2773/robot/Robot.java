@@ -41,6 +41,8 @@ public class Robot extends TimedRobot {
    public Encoder testEncoder;
    
    public PrintCommand printer;
+   
+   public double distance;
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -97,16 +99,35 @@ public class Robot extends TimedRobot {
 	 */
 	@Override
 	public void autonomousPeriodic() {
-		switch (m_autoSelected) {
+		/*switch (m_autoSelected) {
 			case kCustomAuto:
 				// Put custom auto code here
 				break;
 			case kDefaultAuto:
 			default:
 				// Put default auto code here
-				break;
+				break;*/
+        setDist(0);
+        if(getDist() < 12)
+            driveForward(12);
 		}
 	}
+   
+   public void driveForward(){
+      drive.driveCartesian( 0.0, 1.0, 0.0);
+   }
+      
+   public double getDist(){
+      return distance;
+   }
+   
+   public void setDist(double d){
+      distance = d;
+   }
+   
+   public double speedFromEncoder(){
+      return 4;
+   }
 
 	/**
 	 * This function is called periodically during operator control.
