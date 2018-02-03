@@ -1,5 +1,5 @@
-// Version 0.0.1
-// Added encoder test code
+// Version 0.0.2
+// Added primitive autonomous code
 
 package org.usfirst.frc.team2773.robot;
 
@@ -104,6 +104,7 @@ public class Robot extends TimedRobot {
 		// m_autoSelected = SmartDashboard.getString("Auto Selector",
 		// 		kDefaultAuto);
 		System.out.println("Auto selected: " + m_autoSelected);*/
+
       setDist(0);
       autoStep = 0;
 	}
@@ -121,9 +122,15 @@ public class Robot extends TimedRobot {
 			default:
 				// Put default auto code here
 				break;
-       }*/
-        if(autoStep == 0 && distance < 12)
-            driveForward();
+		}*/
+      
+      if(autoStep == 0 && distance < 12)
+         drive.driveCartesian(0, 1, 0);
+      else if(autoStep == 0) {
+         drive.driveCartesian(0, 0, 0);
+         autoStep ++;
+      }
+      
 	}
    
    public void drive(double x, double y, double z) {
@@ -201,6 +208,14 @@ public class Robot extends TimedRobot {
 		SmartDashboard.putBoolean("direction", testEncoder.getDirection());
 		SmartDashboard.putNumber("rate", testEncoder.getRate());
    }
+   
+   public void setDist(double val) {
+      dist = val;
+   }
+   
+   public double getDist() {
+      return dist;
+   }
 }
 
                                                   /*:-                          
@@ -211,7 +226,7 @@ public class Robot extends TimedRobot {
                                     -+oooo/+sdmmmmbmanmmmmmmmd``                  
              ```...--..```        `+dmyyyhmmmmmmmmmneedsmmmmmmhyy+                
       ``-/+syhhdmmmmmmmdhyso+++++sydms    hmmmmdmmmmtommmmmmmmmmmd`               
-     /ydmmmmmmmmmmmmmmmmmmmmmmy:./oo/`    .+so/./hmmmstopmmmmmmmmm+               
+     /ydmmmmmmmmmmmmmmmmmmmmmmy:./oo/`    .+so/./hmmmstopmmquichem+               
       -odmmmmmmmjaredmmmmmmmmh`                  .dmmmmmmmmmmmmmmdh               
      .-`.+hmmmmmmismmmmmmmmmmms                  hmmmmmmmmmdhddy+-`               
     `odmmdhshmmmmmthemmmmmmmmmd/     `+shys/      odmmmmdy+-` ``                   
