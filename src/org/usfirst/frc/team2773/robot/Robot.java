@@ -189,6 +189,12 @@ public class Robot extends TimedRobot {
          curYVal += accel;
       if(rotate < z && rotate > 0)
          rotate += accel;
+      if(curXVal > x && curXVal < 0)
+         curXVal -= accel;
+      if(curYVal > y && cur YVal < 0)
+         curYVal -= accel;
+      if(rotate > z && rotate < 0)
+         rotate -= accel;
       drive.driveCartesian(curXVal, curYVal, rotate);
    }
 }
