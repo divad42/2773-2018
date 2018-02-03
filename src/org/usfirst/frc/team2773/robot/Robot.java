@@ -90,6 +90,7 @@ public class Robot extends TimedRobot {
 		// m_autoSelected = SmartDashboard.getString("Auto Selector",
 		// 		kDefaultAuto);
 		System.out.println("Auto selected: " + m_autoSelected);*/
+      setDist(0);
 	}
 
 	/**
@@ -105,9 +106,27 @@ public class Robot extends TimedRobot {
 			default:
 				// Put default auto code here
 				break;
-		}
+     		}
 	}
+   /*public double speed speedFromEncoder() {
+      return 4;
+   }*/
+   public double getDist() {
+      return dist;
+   }
+   public void setDist (double d)
+   {
+      dist = d;
+   }
+   if (getDist() < x) {
+   
+   }
 
+   public void driveStraight (int distance) {
+      if( dist <= distance ) {
+         drive.driveCartesian(0, 1, 0);  
+      }
+   }   
 	/**
 	 * This function is called periodically during operator control.
 	 */
