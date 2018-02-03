@@ -1,3 +1,4 @@
+
 // Version 0.0.3
 // Added drive method
 
@@ -44,6 +45,7 @@ public class Robot extends TimedRobot {
    
    public double dist;
    
+
    public int autoStep;//counter for the # of steps taken
    
    public double curXVal;
@@ -53,6 +55,7 @@ public class Robot extends TimedRobot {
    public double minSpeed;
    public double accel;
    //public double timeToFull;---- later we will use this in an equation to calculate the acceleration
+
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -83,6 +86,7 @@ public class Robot extends TimedRobot {
       
       printer = new PrintCommand("abcderfjkdjs");
       printer.start();
+
       
       curXVal = 0;//vars for the current values used in the drive method.
       curYVal = 0;
@@ -90,6 +94,7 @@ public class Robot extends TimedRobot {
       maxSpeed = 1;//value in seconds
       minSpeed = -1;//value in seconds
       accel = 0.001;//change from constant later
+
 	}
 
 	/**
@@ -183,6 +188,7 @@ public class Robot extends TimedRobot {
    public double getDist() {
       return dist;
    }
+
    
    public void drive(double x, double y, double z){
       if(curXVal < x && curXVal > 0)
@@ -199,6 +205,7 @@ public class Robot extends TimedRobot {
          rotate -= accel;
       drive.driveCartesian(curXVal, curYVal, rotate);
    }
+
 }
 
                                                   /*:-                          
