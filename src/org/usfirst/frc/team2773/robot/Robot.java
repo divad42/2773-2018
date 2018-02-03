@@ -1,5 +1,5 @@
-// Version 0.0.1
-// Added encoder test code
+// Version 0.0.2
+// Added primitive autonomous code
 
 package org.usfirst.frc.team2773.robot;
 
@@ -41,6 +41,15 @@ public class Robot extends TimedRobot {
    public Encoder testEncoder;
    
    public PrintCommand printer;
+   
+   public double distance;
+   public int autoStep;
+   
+   public double curXVel;
+   public double curYVel;
+   public double curRot;
+   public double maxSpeed;
+   public double accel;
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -69,6 +78,11 @@ public class Robot extends TimedRobot {
       
       testEncoder = new Encoder(0, 1);
       
+      curXVel = 0;
+      curYVel = 0;
+      curRot = 0;
+      accel = 0.01;
+      
       printer = new PrintCommand("abcderfjkdjs");
       printer.start();
 	}
@@ -90,7 +104,9 @@ public class Robot extends TimedRobot {
 		// m_autoSelected = SmartDashboard.getString("Auto Selector",
 		// 		kDefaultAuto);
 		System.out.println("Auto selected: " + m_autoSelected);*/
+
       setDist(0);
+      autoStep = 0;
 	}
 
 	/**
@@ -98,7 +114,7 @@ public class Robot extends TimedRobot {
 	 */
 	@Override
 	public void autonomousPeriodic() {
-		switch (m_autoSelected) {
+		/*switch (m_autoSelected) {
 			case kCustomAuto:
 				// Put custom auto code here
 				break;
@@ -106,27 +122,55 @@ public class Robot extends TimedRobot {
 			default:
 				// Put default auto code here
 				break;
-     		}
+		}*/
+      
+      if(autoStep == 0 && distance < 12)
+         drive.driveCartesian(0, 1, 0);
+      else if(autoStep == 0) {
+         drive.driveCartesian(0, 0, 0);
+         autoStep ++;
+      }
+      
 	}
-   /*public double speed speedFromEncoder() {
-      return 4;
-   }*/
-   public double getDist() {
-      return dist;
-   }
-   public void setDist (double d)
-   {
-      dist = d;
-   }
-   if (getDist() < x) {
    
+   public void drive(double x, double y, double z) {
+      if(x > 0 && curXVel <= maxSpeed)
+         curXVel += accel;
+      else if(x < 0 && curXVel >= (-1 * maxSpeed))
+         curXVel -= accel;
+      if(y > 0 && curYVel <= maxSpeed)
+         curYVel += accel;
+      else if(y < 0 && curYVel >= (-1 * maxSpeed))
+         curYVel -= accel;
+      if(z > 0 && curRot <= maxSpeed)
+         curRot += accel;
+      else if(z < 0 && curRot >= (-1 * maxSpeed))
+         curRot -= accel;
+      if(x == 0)
+         curXVel = 0;
+      if(y == 0)
+         curYVel = 0;
+      if(z == 0)
+         curRot = 0;
+      drive.driveCartesian( curYVel, curXVel, curRot);
+   }
+   
+   public void driveForward() {
+      drive.driveCartesian( 0.0, 1.0, 0.0);
+   }
+      
+   public double getDist() {
+      return distance;
+   }
+   
+   public void setDist(double d) {
+      distance = d;
+   }
+   
+   public double speedFromEncoder() {
+      return 4;
    }
 
-   public void driveStraight (int distance) {
-      if( dist <= distance ) {
-         drive.driveCartesian(0, 1, 0);  
-      }
-   }   
 	/**
 	 * This function is called periodically during operator control.
 	 */
@@ -164,6 +208,14 @@ public class Robot extends TimedRobot {
 		SmartDashboard.putBoolean("direction", testEncoder.getDirection());
 		SmartDashboard.putNumber("rate", testEncoder.getRate());
    }
+   
+   public void setDist(double val) {
+      dist = val;
+   }
+   
+   public double getDist() {
+      return dist;
+   }
 }
 
                                                   /*:-                          
@@ -174,7 +226,7 @@ public class Robot extends TimedRobot {
                                     -+oooo/+sdmmmmbmanmmmmmmmd``                  
              ```...--..```        `+dmyyyhmmmmmmmmmneedsmmmmmmhyy+                
       ``-/+syhhdmmmmmmmdhyso+++++sydms    hmmmmdmmmmtommmmmmmmmmmd`               
-     /ydmmmmmmmmmmmmmmmmmmmmmmy:./oo/`    .+so/./hmmmstopmmmmmmmmm+               
+     /ydmmmmmmmmmmmmmmmmmmmmmmy:./oo/`    .+so/./hmmmstopmmquichem+               
       -odmmmmmmmjaredmmmmmmmmh`                  .dmmmmmmmmmmmmmmdh               
      .-`.+hmmmmmmismmmmmmmmmmms                  hmmmmmmmmmdhddy+-`               
     `odmmdhshmmmmmthemmmmmmmmmd/     `+shys/      odmmmmdy+-` ``                   
