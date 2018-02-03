@@ -134,17 +134,17 @@ public class Robot extends TimedRobot {
 	}
    
    public void drive(double x, double y, double z) {
-      if(x > 0 && x <= maxSpeed)
+      if(x > 0 && curXVel <= maxSpeed)
          curXVel += accel;
-      else if(x < 0 && x >= (-1 * maxSpeed))
+      else if(x < 0 && curXVel >= (-1 * maxSpeed))
          curXVel -= accel;
-      if(y > 0 && y <= maxSpeed)
+      if(y > 0 && curYVel <= maxSpeed)
          curYVel += accel;
-      else if(y < 0 && y >= (-1 * maxSpeed))
+      else if(y < 0 && curYVel >= (-1 * maxSpeed))
          curYVel -= accel;
-      if(z > 0 && z <= maxSpeed)
+      if(z > 0 && curRot <= maxSpeed)
          curRot += accel;
-      else if(z < 0 && z >= (-1 * maxSpeed))
+      else if(z < 0 && curRot >= (-1 * maxSpeed))
          curRot -= accel;
       if(x == 0)
          curXVel = 0;
