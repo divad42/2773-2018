@@ -1,5 +1,6 @@
-// Version 0.0.2
-// Added primitive autonomous code
+
+// Version 0.0.3
+// Added drive method
 
 package org.usfirst.frc.team2773.robot;
 
@@ -44,7 +45,17 @@ public class Robot extends TimedRobot {
    
    public double dist;
    
-   public int autoStep;
+
+   public int autoStep;//counter for the # of steps taken
+   
+   public double curXVal;
+   public double curYVal;
+   public double rotate;
+   public double maxSpeed;
+   public double minSpeed;
+   public double accel;
+   //public double timeToFull;---- later we will use this in an equation to calculate the acceleration
+
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -75,6 +86,15 @@ public class Robot extends TimedRobot {
       
       printer = new PrintCommand("abcderfjkdjs");
       printer.start();
+
+      
+      curXVal = 0;//vars for the current values used in the drive method.
+      curYVal = 0;
+      rotate = 0;
+      maxSpeed = 1;//value in seconds
+      minSpeed = -1;//value in seconds
+      accel = 0.001;//change from constant later
+
 	}
 
 	/**
@@ -168,6 +188,24 @@ public class Robot extends TimedRobot {
    public double getDist() {
       return dist;
    }
+
+   
+   public void drive(double x, double y, double z){
+      if(curXVal < x && curXVal > 0)
+         curXVal += accel;
+      if(curYVal < y && cur YVal > 0)
+         curYVal += accel;
+      if(rotate < z && rotate > 0)
+         rotate += accel;
+      if(curXVal > x && curXVal < 0)
+         curXVal -= accel;
+      if(curYVal > y && cur YVal < 0)
+         curYVal -= accel;
+      if(rotate > z && rotate < 0)
+         rotate -= accel;
+      drive.driveCartesian(curXVal, curYVal, rotate);
+   }
+
 }
 
                                                   /*:-                          
