@@ -44,6 +44,13 @@ public class Robot extends TimedRobot {
    
    public double dist;
    
+   public double curXVel;
+   public double curYVel;
+   public double curRot;
+   
+   public double spdMult;
+   public boolean driving;
+   
    public int autoStep;
 
 	/**
@@ -75,6 +82,13 @@ public class Robot extends TimedRobot {
       
       printer = new PrintCommand("abcderfjkdjs");
       printer.start();
+      
+      curXVel = 0;
+      curYVel = 0;
+      curRot = 0;
+      
+      multiplier = 0;
+      driving = false;
 	}
 
 	/**
@@ -167,6 +181,22 @@ public class Robot extends TimedRobot {
    
    public double getDist() {
       return dist;
+   }
+   
+   //Max Set speed = 1
+   public void drive(double xVel, double yVel, double rotation){
+      addVel(xVel, curXVel);
+      addVel(yVel, curYVel);
+      addVel(rotation, curRot);      
+      drive.driveCartesian(curXVel, curYVel, curRot);      
+   }
+   
+   public void addVel(double val, double addTo){
+        if (vel != 0){
+             addTo += val / 50;  
+        }else{
+            addTo = 0;
+        }         
    }
 }
 
