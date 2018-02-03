@@ -95,6 +95,10 @@ public class Robot extends TimedRobot {
 				// Put default auto code here
 				break;
 		}
+      public void driveStraight(int distance){
+         for(int i = 0; i < distance; i++)
+            drive.driveCartesian(0, speedFromEncoder, 0);
+      }
 	}
 
 	/**
@@ -124,6 +128,12 @@ public class Robot extends TimedRobot {
       else if(stick.getRawButton(2))   // side button is used to take in the cube
          setGrabbers(-0.5);
    }
+   
+   public double speedFromEncoder()
+   {
+      return 4;
+   }
+
 }
 
                                                   /*:-                          
