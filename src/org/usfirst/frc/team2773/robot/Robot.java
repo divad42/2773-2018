@@ -42,6 +42,11 @@ public class Robot extends TimedRobot {
    
    public PrintCommand printer;
 
+   public double curXVel;
+   public double curYVel;
+   public double curRot;
+   public double acceleration = .01;
+   
 	/**
 	 * This function is run when the robot is first started up and should be
 	 * used for any initialization code.
@@ -106,6 +111,11 @@ public class Robot extends TimedRobot {
 				// Put default auto code here
 				break;
 		}
+      if(autoStep == 0 && dist < 12)
+          drive.driveCartesian(0, 1, 0);
+       else if(autoStep == 0) {
+          drive.driveCartesian(0, 0, 0);
+          autoStep ++;
 	}
 
 	/**
@@ -145,6 +155,42 @@ public class Robot extends TimedRobot {
 		SmartDashboard.putBoolean("direction", testEncoder.getDirection());
 		SmartDashboard.putNumber("rate", testEncoder.getRate());
    }
+
+   public void drive(double XVel,double YVel, double Rot, double accel, double maxSpeed){
+      if(XVel > 0 && XVel <= maxSpeed){
+         curXVel += accel;
+      }
+      else if(XVel < 0 && XVel >= (maxSpeed * -1) ){
+         curXVel -= accel;
+      }
+      if(YVel > 0 && YVel <= maxSpeed){
+         curYVel += accel;
+      }
+      else if(YVel < 0 && YVel >= (maxSpeed * -1) ){
+         curYVel -= accel;
+      }
+      if(Rot > 0 && Rot <= maxSpeed){
+         curRot += accel;
+      }
+      else if(Rot < 0 && Rot >= (maxSpeed * -1) ){
+         curRot -= accel;
+      }
+      if(XVel == 0)
+         curXVel = 0;
+      if(YVel == 0)
+         curYVel = 0;
+      if(Rot == 0)
+         curRot = 0;
+      
+      drive.driveCartesian(curXVel, curYVel, curRot);
+
+   }
+
+
+
+
+
+
 }
 
                                                   /*:-                          
