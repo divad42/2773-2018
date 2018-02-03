@@ -43,6 +43,7 @@ public class Robot extends TimedRobot {
    public PrintCommand printer;
    
    public double distance;
+   public int autoStep;
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -92,6 +93,8 @@ public class Robot extends TimedRobot {
 		// m_autoSelected = SmartDashboard.getString("Auto Selector",
 		// 		kDefaultAuto);
 		System.out.println("Auto selected: " + m_autoSelected);*/
+      setDist(0);
+      autoStep = 0;
 	}
 
 	/**
@@ -106,11 +109,10 @@ public class Robot extends TimedRobot {
 			case kDefaultAuto:
 			default:
 				// Put default auto code here
-				break;*/
-        setDist(0);
-        if(getDist() < 12)
-            driveForward(12);
-		}
+				break;
+       }*/
+        if(autoStep == 0 && distance < 12)
+            driveForward();
 	}
    
    public void driveForward(){
