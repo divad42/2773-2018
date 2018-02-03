@@ -50,6 +50,7 @@ public class Robot extends TimedRobot {
    public double curYVal;
    public double rotate;
    public double maxSpeed;
+   public double minSpeed;
    public double accel;
    //public double timeToFull;---- later we will use this in an equation to calculate the acceleration
 
@@ -86,7 +87,8 @@ public class Robot extends TimedRobot {
       curXVal = 0;//vars for the current values used in the drive method.
       curYVal = 0;
       rotate = 0;
-      maxSpeed = 0;//value in seconds
+      maxSpeed = 1;//value in seconds
+      minSpeed = -1;//value in seconds
       accel = 0.001;//change from constant later
 	}
 
