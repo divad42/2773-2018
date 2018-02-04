@@ -50,6 +50,9 @@ public class Robot extends TimedRobot {
    public double curRot;
    public double maxSpeed;
    public double accel;
+   
+   public boolean hasFlu;
+   public String fluType;
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -85,6 +88,10 @@ public class Robot extends TimedRobot {
       curYVel = 0;
       curRot = 0;
       accel = 0.01;
+      
+      // flu variables
+      hasFlu = fluTest();
+      fluType = typeOfFlu(hasFlu);
       
       // this is necessary to print to the console
       printer = new PrintCommand("abcderfjkdjs");
@@ -211,6 +218,34 @@ public class Robot extends TimedRobot {
          setGrabbers(0.5);
       else if(stick.getRawButton(2))   // side button is used to take in the cube
          setGrabbers(-0.5);
+   }
+   
+   public boolean fluTest() {
+      int test = Math.random() * 100;
+      if(test < 33)
+         return false;
+      if(test >= 33)
+         return true;
+   }
+   
+   public String typeOfFlu(boolean hasFlu) {
+      if(!hasFlu)
+         return "None";
+      if(hasFlu) {
+         int x = Math.random() * 100;
+         if( x > 50)
+            return "A";
+         if(x <= 50)
+            return "B";
+      }
+   }
+     
+   public boolean vaxx(boolean hasFlu, String fluType) {
+      if(hasFlu && fluType.equals("A"))
+         hasFlu = false;
+      if(hasFlu && fluType.equals("B"))
+         hasFlu = true;
+      return hasFlu;
    }
    
    public void output() {
