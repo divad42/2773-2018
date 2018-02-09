@@ -50,6 +50,9 @@ public class Robot extends TimedRobot {
    public double curRot;
    public double maxSpeed;
    public double accel;
+   
+   public Victor grab;
+   public Encoder grabEncoder;
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -70,8 +73,6 @@ public class Robot extends TimedRobot {
       drive = new MecanumDrive(FL, BL, FR, BR);
       
       // grabber
-      //grabL = new Victor(4);
-      //grabR = new Victor(5);
       grab = new Victor(4);
       
       // the joysticks
@@ -203,16 +204,17 @@ public class Robot extends TimedRobot {
 	}
    
    public void setGrabber(double val) {
-      //grabL.set(val);
-      //grabR.set(val);
       grab.set(val);
+      //come back and fix once we fully understand encoders.
    }
    
    public void grabber() {
-      if(stick.getRawButton(1))  // trigger is used to eject the cube (Joystick grabs with the Center Trigger)
+      if(stick.getRawButton(1) == true && gamepad.getRawButton(8) == false)  // trigger is to pick up the cube (Joystick grabs with the Center Trigger)
          setGrabber(-0.5);
-      else if(gamepad.getRawButton(8))   // side button is used to take in the cube (Gamepad releases with Right Trigger)
+      else if(gamepad.getRawButton(8) == true && stick.getRawButton(1) == false)   // side button is used to eject the cube (Gamepad releases with Right Trigger)
          setGrabber(0.5);
+      else if(gamepad.getRawButton(8) == false && stick.getRawButton(1) == false)
+         setGrabber(0);
    }
    
    public void output() {
