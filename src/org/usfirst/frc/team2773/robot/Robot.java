@@ -1,4 +1,4 @@
-// Version 0.0.3
+// Version 0.0.4
 // Added drive() method and comments
 
 package org.usfirst.frc.team2773.robot;
@@ -223,7 +223,9 @@ public class Robot extends TimedRobot {
          setGrabbers(-0.5);
    }
    
-   public void fourBar()
+   public void fourBar(){
+   
+   }
    
    public void output() {
    
