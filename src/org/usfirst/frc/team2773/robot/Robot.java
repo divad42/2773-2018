@@ -1,5 +1,6 @@
 // Version 0.0.4
 // Added drive() method and comments
+// Added rudimentary 4 bar code
 
 package org.usfirst.frc.team2773.robot;
 
