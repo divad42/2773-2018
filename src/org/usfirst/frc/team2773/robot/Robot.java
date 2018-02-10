@@ -28,10 +28,19 @@ public class Robot extends TimedRobot {
 	//private String m_autoSelected;
 	private SendableChooser<String> m_chooser = new SendableChooser<>();
    
+   public final double TILE_DISTANCE_RATE = 1;
+   public final double COMP_DISTANCE_RATE = 1;
+   public double distRate; //= TILE or COMP rate 
+   
    public Victor FL;
    public Victor FR;
    public Victor BL;
    public Victor BR;
+   
+   static public Encoder FLE;
+   static public Encoder FRE;
+   static public Encoder BLE;
+   static public Encoder BRE;
 
    public Spark lowerBar;
    public Spark upperBar;
@@ -73,6 +82,9 @@ public class Robot extends TimedRobot {
 	 */
 	@Override
 	public void robotInit() {
+   
+      distRate = COMP_DISTANCE_RATE; 
+     
 		m_chooser.addDefault("Default Auto", kDefaultAuto);
 		m_chooser.addObject("My Auto", kCustomAuto);
 		SmartDashboard.putData("Auto choices", m_chooser);
@@ -84,6 +96,11 @@ public class Robot extends TimedRobot {
       BR = new Victor(2);
       
       drive = new MecanumDrive(FL, BL, FR, BR);
+      //PORT NUMS TEMPORARY!!!
+      FLE = new Encoder(1,2);
+      FRE = new Encoder(2,3);
+      BLE = new Encoder(3,4);
+      BRE = new Encoder(4,5);
       
       // grabber
       grab = new Spark(4);
@@ -295,9 +312,20 @@ public class Robot extends TimedRobot {
    public void fullBar(double val) {
 	   
    }
-   
+   public static void displayEncoderRates(){
+      double[] rates = new double[4];
+      rates[0] = this.FRE.getRate();
+      rates[1] = this.FLE.getRate(); 
+      rates[2] = this.BRE.getRate(); 
+      rates[3] = this.BLE.getRate(); 
+      
+      for(int i = 0; i ++; i < rates.length){
+         SmartDashBoard.putNumber("Rate of Encoder " + i, rates[i]);
+      }
+ 
+   }
    public void output() {
-   
+      displayEncoderRates();
 	   DriverStation ds= DriverStation.getInstance();
       // display the values from the encoder to the SmartDashboard
 	   SmartDashboard.putString("GameData", ds.getGameSpecificMessage());
