@@ -1,5 +1,4 @@
 // Version 0.0.4
-// Added drive() method and comments
 // Added rudimentary 4 bar code
 
 package org.usfirst.frc.team2773.robot;
@@ -13,6 +12,7 @@ import edu.wpi.first.wpilibj.command.PrintCommand;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.DriverStation;
 
 
 /**
@@ -116,7 +116,7 @@ public class Robot extends TimedRobot {
 		// m_autoSelected = SmartDashboard.getString("Auto Selector",
 		// 		kDefaultAuto);
 		System.out.println("Auto selected: " + m_autoSelected);*/
-
+	  
       distance = 0;
       autoStep = 0;
 	}
@@ -137,13 +137,16 @@ public class Robot extends TimedRobot {
 		}*/
       
       // In the first (zeroth?) step, the robot moves 12 feet
+		
+		output();
+		
       if(autoStep == 0 && distance < 12) {
-         drive.driveCartesian(0, 1, 0);
+         drive(0, 1, 0);
       } else if(autoStep == 0) {
-         drive.driveCartesian(0, 0, 0);
+         drive(0, 0, 0);
          autoStep ++;
       } else
-         drive.driveCartesian(0, 0, 0);
+         drive(0, 0, 0);
       
 	}
    
@@ -197,7 +200,7 @@ public class Robot extends TimedRobot {
       /*drive.driveCartesian(gamepad.getRawAxis(1), gamepad.getRawAxis(0), gamepad.getRawAxis(2));
       grabber();*/
       
-      maxSpeed = (-stick.getThrottle + 1) / 2;
+      maxSpeed = (-stick.getThrottle() + 1) / 2;
       drive(stick.getY(), stick.getX(), stick.getZ());
       
       output();
@@ -230,7 +233,9 @@ public class Robot extends TimedRobot {
    
    public void output() {
    
+	   DriverStation ds= DriverStation.getInstance();
       // display the values from the encoder to the SmartDashboard
+	   SmartDashboard.putString("GameData", ds.getGameSpecificMessage());
 	   SmartDashboard.putNumber("distance", testEncoder.getDistance());
 		SmartDashboard.putBoolean("direction", testEncoder.getDirection());
 		SmartDashboard.putNumber("rate", testEncoder.getRate());
