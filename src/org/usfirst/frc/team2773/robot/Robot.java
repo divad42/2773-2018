@@ -52,7 +52,10 @@ public class Robot extends TimedRobot {
    public double accel;
    
    public Victor grab;
-   public Encoder grabEncoder;
+   public Encoder grabRot;
+   
+   public boolean pickup;
+   public boolean drop;
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -73,7 +76,7 @@ public class Robot extends TimedRobot {
       drive = new MecanumDrive(FL, BL, FR, BR);
       
       // grabber
-      grab = new Victor(4);
+      grab = new Spark(4);
       
       // the joysticks
       gamepad = new Joystick(0);
@@ -87,6 +90,9 @@ public class Robot extends TimedRobot {
       curYVel = 0;
       curRot = 0;
       accel = 0.01;
+      
+      pickup = false;
+      drop = false;
       
       // this is necessary to print to the console
       printer = new PrintCommand("abcderfjkdjs");
@@ -190,6 +196,26 @@ public class Robot extends TimedRobot {
 	public void teleopPeriodic() {
       /*drive.driveCartesian(gamepad.getRawAxis(1), gamepad.getRawAxis(0), gamepad.getRawAxis(2));
       grabber();*/
+      if(grabRot.get() == 0)
+      {
+      if(stick.getRawButton(1) && !isClosed)
+         setGrabber(0.5);
+      else if(gamepad.getRawButton(8) && isClosed)
+         setGrabber(-0.5)
+      }   
+      if(grabRot.get() >= threshold)
+      {
+         setGrabber(0);
+         grabRot.reset();
+         isClosed = true;
+      }
+      
+      if(grabRot.get() <= -threshold)
+      {
+         setGrabber(0);
+         grabRot.reset();
+         isClosed = false;
+      }
       
       output();
 	}
@@ -208,14 +234,37 @@ public class Robot extends TimedRobot {
       //come back and fix once we fully understand encoders.
    }
    
-   public void grabber() {
-      if(stick.getRawButton(1) == true && gamepad.getRawButton(8) == false)  // trigger is to pick up the cube (Joystick grabs with the Center Trigger)
+/*   public void grabber(int lastPressed) {
+      /*if(stick.getRawButton(1) && !gamepad.getRawButton(8))  // trigger is to pick up the cube (Joystick grabs with the Center Trigger)
          setGrabber(-0.5);
-      else if(gamepad.getRawButton(8) == true && stick.getRawButton(1) == false)   // side button is used to eject the cube (Gamepad releases with Right Trigger)
+      else if(gamepad.getRawButton(8) && !stick.getRawButton(1))   // side button is used to eject the cube (Gamepad releases with Right Trigger)
          setGrabber(0.5);
-      else if(gamepad.getRawButton(8) == false && stick.getRawButton(1) == false)
+      else if(!gamepad.getRawButton(8) && !stick.getRawButton(1))
          setGrabber(0);
-   }
+     
+       if(lastPressed == 1))
+       {
+         if(grabRot.get() < threshold)
+         {
+            setGrabber(0.5);
+         }
+         if(grabRot.get() >= threshold) 
+         {
+            setGrabber(0);
+            grabRot.reset();
+         }
+       }
+       else if(lastPressed == 2)
+       {
+         if(grabRot.get() > -threshold)
+         {
+            setGrabber(-0.5);
+         }
+         setGrabber(0);
+         grabRot.reset();
+       }
+       
+   }*/
    
    public void output() {
    
