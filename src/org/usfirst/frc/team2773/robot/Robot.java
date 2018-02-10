@@ -1,5 +1,5 @@
-// Version 0.0.4
-// Added rudimentary 4 bar code
+// Version 0.1.0
+// Updated grabber code and added rudamentary auto functions
 
 package org.usfirst.frc.team2773.robot;
 
