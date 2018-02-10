@@ -78,6 +78,7 @@ public class Robot extends TimedRobot {
       drive = new MecanumDrive(FL, BL, FR, BR);
       
       // grabber
+
       grab = new Spark(4);
 
       // 4 bar
@@ -205,6 +206,7 @@ public class Robot extends TimedRobot {
 	public void teleopPeriodic() {
       /*drive.driveCartesian(gamepad.getRawAxis(1), gamepad.getRawAxis(0), gamepad.getRawAxis(2));
       grabber();*/
+
       if(grabRot.get() == 0)
       {
       if(stick.getRawButton(1) && !isClosed)
@@ -228,7 +230,7 @@ public class Robot extends TimedRobot {
       
       maxSpeed = (-stick.getThrottle() + 1) / 2;
       drive(stick.getY(), stick.getX(), stick.getZ());
-      
+
       output();
 	}
 
@@ -246,9 +248,11 @@ public class Robot extends TimedRobot {
       //come back and fix once we fully understand encoders.
    }
    
+
    public void fourBar(){
    
    }
+
    
    public void output() {
    
