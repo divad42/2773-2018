@@ -1,6 +1,5 @@
-// Version 0.0.4
-// Added drive() method and comments
-// Added rudimentary 4 bar code
+// Version 1.0.0
+// Updated grabber code and upper bar code and added rudimentary auto and encoder functions
 
 package org.usfirst.frc.team2773.robot;
 
@@ -13,6 +12,7 @@ import edu.wpi.first.wpilibj.command.PrintCommand;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.DriverStation;
 
 
 /**
@@ -28,25 +28,35 @@ public class Robot extends TimedRobot {
 	//private String m_autoSelected;
 	private SendableChooser<String> m_chooser = new SendableChooser<>();
    
+   public final double TILE_DISTANCE_RATE = 1;
+   public final double COMP_DISTANCE_RATE = 1;
+   public double distRate; //= TILE or COMP rate 
+   
    public Victor FL;
    public Victor FR;
    public Victor BL;
    public Victor BR;
    
-   public Spark grabL;
-   public Spark grabR;
+   static public Encoder FLE;
+   static public Encoder FRE;
+   static public Encoder BLE;
+   static public Encoder BRE;
+
    public Spark lowerBar;
    public Spark upperBar;
+   //public Encoder lowEncoder;
+   //public Encoder upEncoder;
    
    public MecanumDrive drive;
    public Joystick gamepad;
    public Joystick stick;
    
-   public Encoder testEncoder;
+   //public Encoder testEncoder;
    
    public PrintCommand printer;
    
    public double distance;
+   public double grabLimit;
    public int autoStep;
    
    public double curXVel;
@@ -54,6 +64,17 @@ public class Robot extends TimedRobot {
    public double curRot;
    public double maxSpeed;
    public double accel;
+   public static double maxUp;
+   public static double maxDown;
+   public static double minUp;
+   public static double minDown;
+   
+   public Spark grab;
+   public Encoder grabRot;
+   
+   public boolean isClosed;
+   public boolean barMode;
+   public boolean articulating;
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -61,39 +82,59 @@ public class Robot extends TimedRobot {
 	 */
 	@Override
 	public void robotInit() {
+   
+      distRate = COMP_DISTANCE_RATE; 
+     
 		m_chooser.addDefault("Default Auto", kDefaultAuto);
 		m_chooser.addObject("My Auto", kCustomAuto);
 		SmartDashboard.putData("Auto choices", m_chooser);
       
       // wheels
-      FL = new Victor(0);
-      FR = new Victor(1);
-      BL = new Victor(2);
-      BR = new Victor(3);
+      FL = new Victor(3);
+      FR = new Victor(0);
+      BL = new Victor(1);
+      BR = new Victor(2);
       
       drive = new MecanumDrive(FL, BL, FR, BR);
+      //PORT NUMS TEMPORARY!!!
+      FLE = new Encoder(2,3);
+      FRE = new Encoder(4,5);
+      BLE = new Encoder(6,7);
+      BRE = new Encoder(0,1);
       
       // grabber
-      grabL = new Spark(4);
-      grabR = new Spark(5);
-      
+      grab = new Spark(4);
+      //grabRot = new Encoder(2, 3);
+      isClosed = true;
+      grabLimit = 0;
+      articulating = false;
+
       // 4 bar
       lowerBar = new Spark(6);
       upperBar = new Spark(7);
+      //upEncoder = new Encoder(4, 5);
+      //lowEncoder = new Encoder(6, 7);
+      barMode = false;
+      
+      // these constants represent the limits of our 4-bar articulation
+      maxUp = 360;
+      minUp = -360;
+      maxDown = 360;
+      minDown = -360;
       
       // the joysticks
       gamepad = new Joystick(0);
       stick = new Joystick(1);
       
-      // the encoder
-      testEncoder = new Encoder(0, 1);
+      // test encoder
+      //testEncoder = new Encoder(0, 1);
       
       // drive variables
       curXVel = 0;
       curYVel = 0;
       curRot = 0;
       accel = 0.01;
-      
+            
       // this is necessary to print to the console
       printer = new PrintCommand("abcderfjkdjs");
       printer.start();
@@ -116,7 +157,7 @@ public class Robot extends TimedRobot {
 		// m_autoSelected = SmartDashboard.getString("Auto Selector",
 		// 		kDefaultAuto);
 		System.out.println("Auto selected: " + m_autoSelected);*/
-
+	  
       distance = 0;
       autoStep = 0;
 	}
@@ -137,13 +178,16 @@ public class Robot extends TimedRobot {
 		}*/
       
       // In the first (zeroth?) step, the robot moves 12 feet
+		
+		output();
+		
       if(autoStep == 0 && distance < 12) {
-         drive.driveCartesian(0, 1, 0);
+         drive(0, 1, 0);
       } else if(autoStep == 0) {
-         drive.driveCartesian(0, 0, 0);
+         drive(0, 0, 0);
          autoStep ++;
       } else
-         drive.driveCartesian(0, 0, 0);
+         drive(0, 0, 0);
       
 	}
    
@@ -172,13 +216,13 @@ public class Robot extends TimedRobot {
          
       // if the joystick is in the resting position, setting the motor to zero
       // should cause the robot to drift.   
-      if(x == 0)
+      if(x > -0.1 && x < 0.1)
          curXVel = 0;
          
-      if(y == 0)
+      if(y > -0.1 && y < 0.1)
          curYVel = 0;
          
-      if(z == 0)
+      if(z > -0.1 && z < 0.1)
          curRot = 0;
          
       drive.driveCartesian( curYVel, curXVel, curRot );
@@ -189,17 +233,26 @@ public class Robot extends TimedRobot {
       return 4;
    }
 
-	/**
+   @Override
+   public void teleopInit() {
+	   //testEncoder.reset();
+	   FRE.reset();
+	   FLE.reset();
+	   BRE.reset();
+	   BLE.reset();
+   }
+   
+   /**
 	 * This function is called periodically during operator control.
 	 */
 	@Override
 	public void teleopPeriodic() {
-      /*drive.driveCartesian(gamepad.getRawAxis(1), gamepad.getRawAxis(0), gamepad.getRawAxis(2));
-      grabber();*/
+		
+      maxSpeed = (-stick.getThrottle() + 1) / 2;
       
-      maxSpeed = (-stick.getThrottle + 1) / 2;
-      drive(stick.getY(), stick.getX(), stick.getZ());
-      
+      drive(-stick.getY(), stick.getX(), stick.getTwist());
+      fourBar();
+      grabber();
       output();
 	}
 
@@ -212,28 +265,78 @@ public class Robot extends TimedRobot {
 		
 	}
    
-   public void setGrabbers(double val) {
-      grabL.set(val);
-      grabR.set(val);
-   }
-   
    public void grabber() {
-      if(gamepad.getRawButton(8))  // right trigger is used to eject the cube
-         setGrabbers(0.5);
-      else if(stick.getRawButton(1))   // trigger is used to take in the cube
-         setGrabbers(-0.5);
+	   /*if(grabRot.get() == 0) // if it's at the base position
+	      {
+	      if(stick.getRawButton(1) && !isClosed && !articulating)  	// trigger on joystick
+	          articulating = true;							
+	      else if(gamepad.getRawButton(8) && isClosed && !articulating)	// right trigger on gamepad
+	    	  articulating = true;
+	      }   
+	   
+	   	  if(articulating && isClosed)
+	   		  grab.set(0.5);
+	   	  else if(articulating)
+	   		  grab.set(-0.5);
+	   
+	      if(grabRot.get() >= grabLimit)
+	      {
+	         grab.set(0);
+	         grabRot.reset();
+	         isClosed = true;
+	         articulating = false;
+	      }
+	      
+	      if(grabRot.get() <= -grabLimit)
+	      {
+	         grab.set(0);
+	         grabRot.reset();
+	         isClosed = false;
+	         articulating = false;
+	      }*/
    }
    
+
    public void fourBar(){
-   
+	   if (barMode)
+		   fullBar(gamepad.getTwist());
+	   else
+		   topBar(gamepad.getTwist());
    }
    
+   public void topBar(double val) {
+	   /*if(val < 0 && upEncoder.get() < maxUp)
+		   upperBar.set(0.1);
+	   else if(val > 0 && upEncoder.get() > minUp)
+		   upperBar.set(-0.1);
+	   else
+		   upperBar.set(0);*/
+   }
+
+   public void fullBar(double val) {
+	   
+   }
+   public static void displayEncoderVals(){
+      double[] vals = new double[4];
+      vals[0] = FRE.get();
+      vals[1] = FLE.get(); 
+      vals[2] = BRE.get(); 
+      vals[3] = BLE.get(); 
+      
+      for(int i = 0; i < vals.length; i
+    		  							++) {
+         SmartDashboard.putNumber("Value of Encoder " + i, vals[i]);
+      }
+ 
+   }
    public void output() {
-   
+      displayEncoderVals();
+	   DriverStation ds= DriverStation.getInstance();
       // display the values from the encoder to the SmartDashboard
-	   SmartDashboard.putNumber("distance", testEncoder.getDistance());
-		SmartDashboard.putBoolean("direction", testEncoder.getDirection());
-		SmartDashboard.putNumber("rate", testEncoder.getRate());
+	   SmartDashboard.putString("GameData", ds.getGameSpecificMessage());
+	  //SmartDashboard.putNumber("distance", testEncoder.getDistance());
+	 //SmartDashboard.putBoolean("direction", testEncoder.getDirection());
+	//SmartDashboard.putNumber("rate", testEncoder.getRate());
       
    }
    
