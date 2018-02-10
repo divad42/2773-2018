@@ -31,8 +31,11 @@ public class Robot extends TimedRobot {
    public Victor BL;
    public Victor BR;
    
-   public Victor grabL;
-   public Victor grabR;
+   public Spark grabL;
+   public Spark grabR;
+   
+   public Spark lowerBar;
+   public Spark upperBar;
    
    public MecanumDrive drive;
    public Joystick gamepad;
@@ -70,8 +73,12 @@ public class Robot extends TimedRobot {
       drive = new MecanumDrive(FL, BL, FR, BR);
       
       // grabber
-      grabL = new Victor(4);
-      grabR = new Victor(5);
+      grabL = new Spark(4);
+      grabR = new Spark(5);
+      
+      //4 bar
+      lowerBar = new Spark(6);
+      upperBar = new Spark(7);
       
       // the joysticks
       gamepad = new Joystick(0);
@@ -188,7 +195,8 @@ public class Robot extends TimedRobot {
 	public void teleopPeriodic() {
       /*drive.driveCartesian(gamepad.getRawAxis(1), gamepad.getRawAxis(0), gamepad.getRawAxis(2));
       grabber();*/
-      
+      maxSpeed = (-stick.getThrottle() + 1) / 2;                   //may need changes to getThrottle()
+      drive(stick.getY(), stick.getX(), stick.getTwist());
       output();
 	}
 
@@ -207,10 +215,14 @@ public class Robot extends TimedRobot {
    }
    
    public void grabber() {
-      if(stick.getRawButton(1))  // trigger is used to eject the cube
+      if(gamepad.getRawButton(8))  // trigger is used to eject the cube
          setGrabbers(0.5);
-      else if(stick.getRawButton(2))   // side button is used to take in the cube
+      else if(stick.getRawButton(1))   // side button is used to take in the cube
          setGrabbers(-0.5);
+   }
+   
+   public void fourBar() {
+      
    }
    
    public void output() {
