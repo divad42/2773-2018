@@ -1,5 +1,5 @@
-// Version 0.0.4
-// Added grabber method and removed extraneous code
+// Version 0.1.0
+// Updated grabber code and added rudamentary auto functions
 
 package org.usfirst.frc.team2773.robot;
 
@@ -7,10 +7,12 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Victor;
+import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.command.PrintCommand;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.DriverStation;
 
 
 /**
@@ -30,9 +32,9 @@ public class Robot extends TimedRobot {
    public Victor FR;
    public Victor BL;
    public Victor BR;
-   
-   //public Victor grabL;
-   //public Victor grabR;
+
+   public Spark lowerBar;
+   public Spark upperBar;
    
    public MecanumDrive drive;
    public Joystick gamepad;
@@ -77,6 +79,10 @@ public class Robot extends TimedRobot {
       
       // grabber
       grab = new Spark(4);
+
+      // 4 bar
+      lowerBar = new Spark(6);
+      upperBar = new Spark(7);
       
       // the joysticks
       gamepad = new Joystick(0);
@@ -116,7 +122,7 @@ public class Robot extends TimedRobot {
 		// m_autoSelected = SmartDashboard.getString("Auto Selector",
 		// 		kDefaultAuto);
 		System.out.println("Auto selected: " + m_autoSelected);*/
-
+	  
       distance = 0;
       autoStep = 0;
 	}
@@ -137,13 +143,16 @@ public class Robot extends TimedRobot {
 		}*/
       
       // In the first (zeroth?) step, the robot moves 12 feet
+		
+		output();
+		
       if(autoStep == 0 && distance < 12) {
-         drive.driveCartesian(0, 1, 0);
+         drive(0, 1, 0);
       } else if(autoStep == 0) {
-         drive.driveCartesian(0, 0, 0);
+         drive(0, 0, 0);
          autoStep ++;
       } else
-         drive.driveCartesian(0, 0, 0);
+         drive(0, 0, 0);
       
 	}
    
@@ -217,6 +226,9 @@ public class Robot extends TimedRobot {
          isClosed = false;
       }
       
+      maxSpeed = (-stick.getThrottle() + 1) / 2;
+      drive(stick.getY(), stick.getX(), stick.getZ());
+      
       output();
 	}
 
@@ -234,41 +246,15 @@ public class Robot extends TimedRobot {
       //come back and fix once we fully understand encoders.
    }
    
-/*   public void grabber(int lastPressed) {
-      /*if(stick.getRawButton(1) && !gamepad.getRawButton(8))  // trigger is to pick up the cube (Joystick grabs with the Center Trigger)
-         setGrabber(-0.5);
-      else if(gamepad.getRawButton(8) && !stick.getRawButton(1))   // side button is used to eject the cube (Gamepad releases with Right Trigger)
-         setGrabber(0.5);
-      else if(!gamepad.getRawButton(8) && !stick.getRawButton(1))
-         setGrabber(0);
-     
-       if(lastPressed == 1))
-       {
-         if(grabRot.get() < threshold)
-         {
-            setGrabber(0.5);
-         }
-         if(grabRot.get() >= threshold) 
-         {
-            setGrabber(0);
-            grabRot.reset();
-         }
-       }
-       else if(lastPressed == 2)
-       {
-         if(grabRot.get() > -threshold)
-         {
-            setGrabber(-0.5);
-         }
-         setGrabber(0);
-         grabRot.reset();
-       }
-       
-   }*/
+   public void fourBar(){
+   
+   }
    
    public void output() {
    
+	   DriverStation ds= DriverStation.getInstance();
       // display the values from the encoder to the SmartDashboard
+	   SmartDashboard.putString("GameData", ds.getGameSpecificMessage());
 	   SmartDashboard.putNumber("distance", testEncoder.getDistance());
 		SmartDashboard.putBoolean("direction", testEncoder.getDirection());
 		SmartDashboard.putNumber("rate", testEncoder.getRate());
