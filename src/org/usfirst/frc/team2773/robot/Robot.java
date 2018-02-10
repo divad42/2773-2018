@@ -1,6 +1,5 @@
-// Version 0.0.4
-// Added drive() method and comments
-// Added rudimentary 4 bar code
+// Version 0.1.0
+// Updated grabber code and added rudamentary auto functions
 
 package org.usfirst.frc.team2773.robot;
 
@@ -13,6 +12,7 @@ import edu.wpi.first.wpilibj.command.PrintCommand;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.DriverStation;
 
 
 /**
@@ -32,9 +32,7 @@ public class Robot extends TimedRobot {
    public Victor FR;
    public Victor BL;
    public Victor BR;
-   
-   public Spark grabL;
-   public Spark grabR;
+
    public Spark lowerBar;
    public Spark upperBar;
    
@@ -54,6 +52,12 @@ public class Robot extends TimedRobot {
    public double curRot;
    public double maxSpeed;
    public double accel;
+   
+   public Victor grab;
+   public Encoder grabRot;
+   
+   public boolean pickup;
+   public boolean drop;
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -74,9 +78,9 @@ public class Robot extends TimedRobot {
       drive = new MecanumDrive(FL, BL, FR, BR);
       
       // grabber
-      grabL = new Spark(4);
-      grabR = new Spark(5);
-      
+
+      grab = new Spark(4);
+
       // 4 bar
       lowerBar = new Spark(6);
       upperBar = new Spark(7);
@@ -93,6 +97,9 @@ public class Robot extends TimedRobot {
       curYVel = 0;
       curRot = 0;
       accel = 0.01;
+      
+      pickup = false;
+      drop = false;
       
       // this is necessary to print to the console
       printer = new PrintCommand("abcderfjkdjs");
@@ -116,7 +123,7 @@ public class Robot extends TimedRobot {
 		// m_autoSelected = SmartDashboard.getString("Auto Selector",
 		// 		kDefaultAuto);
 		System.out.println("Auto selected: " + m_autoSelected);*/
-
+	  
       distance = 0;
       autoStep = 0;
 	}
@@ -137,13 +144,16 @@ public class Robot extends TimedRobot {
 		}*/
       
       // In the first (zeroth?) step, the robot moves 12 feet
+		
+		output();
+		
       if(autoStep == 0 && distance < 12) {
-         drive.driveCartesian(0, 1, 0);
+         drive(0, 1, 0);
       } else if(autoStep == 0) {
-         drive.driveCartesian(0, 0, 0);
+         drive(0, 0, 0);
          autoStep ++;
       } else
-         drive.driveCartesian(0, 0, 0);
+         drive(0, 0, 0);
       
 	}
    
@@ -196,10 +206,31 @@ public class Robot extends TimedRobot {
 	public void teleopPeriodic() {
       /*drive.driveCartesian(gamepad.getRawAxis(1), gamepad.getRawAxis(0), gamepad.getRawAxis(2));
       grabber();*/
+
+      if(grabRot.get() == 0)
+      {
+      if(stick.getRawButton(1) && !isClosed)
+         setGrabber(0.5);
+      else if(gamepad.getRawButton(8) && isClosed)
+         setGrabber(-0.5)
+      }   
+      if(grabRot.get() >= threshold)
+      {
+         setGrabber(0);
+         grabRot.reset();
+         isClosed = true;
+      }
       
-      maxSpeed = (-stick.getThrottle + 1) / 2;
+      if(grabRot.get() <= -threshold)
+      {
+         setGrabber(0);
+         grabRot.reset();
+         isClosed = false;
+      }
+      
+      maxSpeed = (-stick.getThrottle() + 1) / 2;
       drive(stick.getY(), stick.getX(), stick.getZ());
-      
+
       output();
 	}
 
@@ -212,25 +243,22 @@ public class Robot extends TimedRobot {
 		
 	}
    
-   public void setGrabbers(double val) {
-      grabL.set(val);
-      grabR.set(val);
+   public void setGrabber(double val) {
+      grab.set(val);
+      //come back and fix once we fully understand encoders.
    }
    
-   public void grabber() {
-      if(gamepad.getRawButton(8))  // right trigger is used to eject the cube
-         setGrabbers(0.5);
-      else if(stick.getRawButton(1))   // trigger is used to take in the cube
-         setGrabbers(-0.5);
-   }
-   
+
    public void fourBar(){
    
    }
+
    
    public void output() {
    
+	   DriverStation ds= DriverStation.getInstance();
       // display the values from the encoder to the SmartDashboard
+	   SmartDashboard.putString("GameData", ds.getGameSpecificMessage());
 	   SmartDashboard.putNumber("distance", testEncoder.getDistance());
 		SmartDashboard.putBoolean("direction", testEncoder.getDirection());
 		SmartDashboard.putNumber("rate", testEncoder.getRate());
