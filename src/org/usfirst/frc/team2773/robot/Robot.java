@@ -44,14 +44,14 @@ public class Robot extends TimedRobot {
 
    public Spark lowerBar;
    public Spark upperBar;
-   public Encoder lowEncoder;
-   public Encoder upEncoder;
+   //public Encoder lowEncoder;
+   //public Encoder upEncoder;
    
    public MecanumDrive drive;
    public Joystick gamepad;
    public Joystick stick;
    
-   public Encoder testEncoder;
+   //public Encoder testEncoder;
    
    public PrintCommand printer;
    
@@ -97,9 +97,9 @@ public class Robot extends TimedRobot {
       
       drive = new MecanumDrive(FL, BL, FR, BR);
       //PORT NUMS TEMPORARY!!!
-      FLE = new Encoder(4,5);
-      FRE = new Encoder(2,3);
-      //BLE = new Encoder(6,7);
+      FLE = new Encoder(2,3);
+      FRE = new Encoder(4,5);
+      BLE = new Encoder(6,7);
       BRE = new Encoder(0,1);
       
       // grabber
@@ -235,7 +235,11 @@ public class Robot extends TimedRobot {
 
    @Override
    public void teleopInit() {
-	   testEncoder.reset();
+	   //testEncoder.reset();
+	   FRE.reset();
+	   FLE.reset();
+	   BRE.reset();
+	   BLE.reset();
    }
    
    /**
@@ -262,7 +266,7 @@ public class Robot extends TimedRobot {
 	}
    
    public void grabber() {
-	   if(grabRot.get() == 0) // if it's at the base position
+	   /*if(grabRot.get() == 0) // if it's at the base position
 	      {
 	      if(stick.getRawButton(1) && !isClosed && !articulating)  	// trigger on joystick
 	          articulating = true;							
@@ -289,7 +293,7 @@ public class Robot extends TimedRobot {
 	         grabRot.reset();
 	         isClosed = false;
 	         articulating = false;
-	      }
+	      }*/
    }
    
 
@@ -301,38 +305,38 @@ public class Robot extends TimedRobot {
    }
    
    public void topBar(double val) {
-	   if(val < 0 && upEncoder.get() < maxUp)
+	   /*if(val < 0 && upEncoder.get() < maxUp)
 		   upperBar.set(0.1);
 	   else if(val > 0 && upEncoder.get() > minUp)
 		   upperBar.set(-0.1);
 	   else
-		   upperBar.set(0);
+		   upperBar.set(0);*/
    }
 
    public void fullBar(double val) {
 	   
    }
-   public static void displayEncoderRates(){
-      double[] rates = new double[3];
-      rates[0] = FRE.getRate();
-      rates[1] = FLE.getRate(); 
-      rates[2] = BRE.getRate(); 
-      //rates[3] = BLE.getRate(); 
+   public static void displayEncoderVals(){
+      double[] vals = new double[4];
+      vals[0] = FRE.get();
+      vals[1] = FLE.get(); 
+      vals[2] = BRE.get(); 
+      vals[3] = BLE.get(); 
       
-      for(int i = 0; i < rates.length; i
+      for(int i = 0; i < vals.length; i
     		  							++) {
-         SmartDashboard.putNumber("Rate of Encoder " + i, rates[i]);
+         SmartDashboard.putNumber("Value of Encoder " + i, vals[i]);
       }
  
    }
    public void output() {
-      displayEncoderRates();
+      displayEncoderVals();
 	   DriverStation ds= DriverStation.getInstance();
       // display the values from the encoder to the SmartDashboard
 	   SmartDashboard.putString("GameData", ds.getGameSpecificMessage());
-	   SmartDashboard.putNumber("distance", testEncoder.getDistance());
-		SmartDashboard.putBoolean("direction", testEncoder.getDirection());
-		SmartDashboard.putNumber("rate", testEncoder.getRate());
+	  //SmartDashboard.putNumber("distance", testEncoder.getDistance());
+	 //SmartDashboard.putBoolean("direction", testEncoder.getDirection());
+	//SmartDashboard.putNumber("rate", testEncoder.getRate());
       
    }
    
