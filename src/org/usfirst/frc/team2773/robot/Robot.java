@@ -32,7 +32,12 @@ public class Robot extends TimedRobot {
    public Victor FR;
    public Victor BL;
    public Victor BR;
-
+   
+   public static Encoder FL;
+   public static Encoder FR;
+   public static Encoder BR;
+   public static Encoder BL;
+   
    public Spark lowerBar;
    public Spark upperBar;
    public Encoder lowEncoder;
@@ -287,8 +292,21 @@ public class Robot extends TimedRobot {
 		   upperBar.set(0);
    }
 
-   public void fullBar(double val) {
+   public  void fullBar(double val) 
+   {
 	   
+   }
+   FL = new Encoder(1,2);
+   FR = new Encoder(3,4);
+   BL = new Encoder(6,7);
+   BR = new Encoder(4,7);
+   public static void displayEncodeRates()
+   {
+        double[] rates = new double[4];
+        rates[0] = this.FR.getRate();
+        rates[1] = this.BR.getRate();
+        rates[0] = this.FR.getRate();
+        
    }
    
    public void output() {
