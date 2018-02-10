@@ -1,5 +1,5 @@
-// Version 0.1.0
-// Updated grabber code and upper bar code and added rudimentary auto functions
+// Version 1.0.0
+// Updated grabber code and upper bar code and added rudimentary auto and encoder functions
 
 package org.usfirst.frc.team2773.robot;
 
@@ -97,14 +97,14 @@ public class Robot extends TimedRobot {
       
       drive = new MecanumDrive(FL, BL, FR, BR);
       //PORT NUMS TEMPORARY!!!
-      FLE = new Encoder(1,2);
+      FLE = new Encoder(4,5);
       FRE = new Encoder(2,3);
-      BLE = new Encoder(3,4);
-      BRE = new Encoder(4,5);
+      //BLE = new Encoder(6,7);
+      BRE = new Encoder(0,1);
       
       // grabber
       grab = new Spark(4);
-      grabRot = new Encoder(2, 3);
+      //grabRot = new Encoder(2, 3);
       isClosed = true;
       grabLimit = 0;
       articulating = false;
@@ -112,8 +112,8 @@ public class Robot extends TimedRobot {
       // 4 bar
       lowerBar = new Spark(6);
       upperBar = new Spark(7);
-      upEncoder = new Encoder(4, 5);
-      lowEncoder = new Encoder(6, 7);
+      //upEncoder = new Encoder(4, 5);
+      //lowEncoder = new Encoder(6, 7);
       barMode = false;
       
       // these constants represent the limits of our 4-bar articulation
@@ -127,7 +127,7 @@ public class Robot extends TimedRobot {
       stick = new Joystick(1);
       
       // test encoder
-      testEncoder = new Encoder(0, 1);
+      //testEncoder = new Encoder(0, 1);
       
       // drive variables
       curXVel = 0;
@@ -313,14 +313,15 @@ public class Robot extends TimedRobot {
 	   
    }
    public static void displayEncoderRates(){
-      double[] rates = new double[4];
-      rates[0] = this.FRE.getRate();
-      rates[1] = this.FLE.getRate(); 
-      rates[2] = this.BRE.getRate(); 
-      rates[3] = this.BLE.getRate(); 
+      double[] rates = new double[3];
+      rates[0] = FRE.getRate();
+      rates[1] = FLE.getRate(); 
+      rates[2] = BRE.getRate(); 
+      //rates[3] = BLE.getRate(); 
       
-      for(int i = 0; i ++; i < rates.length){
-         SmartDashBoard.putNumber("Rate of Encoder " + i, rates[i]);
+      for(int i = 0; i < rates.length; i
+    		  							++) {
+         SmartDashboard.putNumber("Rate of Encoder " + i, rates[i]);
       }
  
    }
