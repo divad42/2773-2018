@@ -199,13 +199,13 @@ public class Robot extends TimedRobot {
          
       // if the joystick is in the resting position, setting the motor to zero
       // should cause the robot to drift.   
-      if(x == 0)
+      if(x > -0.1 && x < 0.1)
          curXVel = 0;
          
-      if(y == 0)
+      if(y > -0.1 && y < 0.1)
          curYVel = 0;
          
-      if(z == 0)
+      if(z > -0.1 && z < 0.1)
          curRot = 0;
          
       drive.driveCartesian( curYVel, curXVel, curRot );
@@ -216,7 +216,12 @@ public class Robot extends TimedRobot {
       return 4;
    }
 
-	/**
+   @Override
+   public void teleopInit() {
+	   testEncoder.reset();
+   }
+   
+   /**
 	 * This function is called periodically during operator control.
 	 */
 	@Override
@@ -224,7 +229,7 @@ public class Robot extends TimedRobot {
 		
       maxSpeed = (-stick.getThrottle() + 1) / 2;
       
-      drive(stick.getY(), stick.getX(), stick.getTwist());
+      drive(-stick.getY(), stick.getX(), stick.getTwist());
       fourBar();
       grabber();
       output();
