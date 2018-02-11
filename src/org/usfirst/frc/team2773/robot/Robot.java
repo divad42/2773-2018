@@ -33,8 +33,10 @@ public class Robot extends TimedRobot {
    public Victor BL;
    public Victor BR;
 
-   public Spark lowerBar;
    public Spark upperBar;
+   public Spark lowerBar;
+   public Encoder lowEncoder;
+   public Encoder upEncoder;
    
    public MecanumDrive drive;
    public Joystick gamepad;
@@ -45,6 +47,7 @@ public class Robot extends TimedRobot {
    public PrintCommand printer;
    
    public double distance;
+   public double grabLimit;
    public int autoStep;
    
    public double curXVel;
@@ -52,12 +55,17 @@ public class Robot extends TimedRobot {
    public double curRot;
    public double maxSpeed;
    public double accel;
+   public static double maxUp;
+   public static double maxDown;
+   public static double minUp;
+   public static double minDown;
    
-   public Victor grab;
+   public Spark grab;
    public Encoder grabRot;
    
-   public boolean pickup;
-   public boolean drop;
+   public boolean isClosed;
+   public boolean barMode;
+   public boolean articulating;
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -78,12 +86,24 @@ public class Robot extends TimedRobot {
       drive = new MecanumDrive(FL, BL, FR, BR);
       
       // grabber
-
       grab = new Spark(4);
+      grabRot = new Encoder(2, 0);
+      isClosed = true;
+      grabLimit = 0;
+      articulating = false;
 
       // 4 bar
-      lowerBar = new Spark(6);
-      upperBar = new Spark(7);
+      upperBar = new Spark(6);
+      bottomBar = new Spark(7);
+      upEncoder = new Encoder(4,5);
+      lowEncoder = new Encoder(6,7);
+      barMode = false;
+      
+      maxUp = 360;
+      minUP = -360;
+      maxDown = 360;
+      minDown = -360;
+      
       
       // the joysticks
       gamepad = new Joystick(0);
@@ -98,8 +118,6 @@ public class Robot extends TimedRobot {
       curRot = 0;
       accel = 0.01;
       
-      pickup = false;
-      drop = false;
       
       // this is necessary to print to the console
       printer = new PrintCommand("abcderfjkdjs");
@@ -204,32 +222,12 @@ public class Robot extends TimedRobot {
 	 */
 	@Override
 	public void teleopPeriodic() {
-      /*drive.driveCartesian(gamepad.getRawAxis(1), gamepad.getRawAxis(0), gamepad.getRawAxis(2));
-      grabber();*/
-
-      if(grabRot.get() == 0)
-      {
-      if(stick.getRawButton(1) && !isClosed)
-         setGrabber(0.5);
-      else if(gamepad.getRawButton(8) && isClosed)
-         setGrabber(-0.5)
-      }   
-      if(grabRot.get() >= threshold)
-      {
-         setGrabber(0);
-         grabRot.reset();
-         isClosed = true;
-      }
-      
-      if(grabRot.get() <= -threshold)
-      {
-         setGrabber(0);
-         grabRot.reset();
-         isClosed = false;
-      }
+      grabber();
       
       maxSpeed = (-stick.getThrottle() + 1) / 2;
       drive(stick.getY(), stick.getX(), stick.getZ());
+      
+      fourBar();
 
       output();
 	}
@@ -250,7 +248,49 @@ public class Robot extends TimedRobot {
    
 
    public void fourBar(){
+      if(barMode)
+         fullBar(gamepad.getTwist());
+      else
+         topBar(gamepad.getTwist());
+   }
    
+   public void topBar(double val) {
+      
+   }
+   
+   public void fullBar(double val) {
+      if(val < 0 && upEncoder.get() < maxUp)
+         upperBar.set(0.1);
+      else if(val > 0 && upEncoder.get() > minUp)
+         upperBar.set(-0.1);
+      else
+         upperBar.set(0);
+   }
+   
+   public void grabber() {
+      if(grabRot.get() == 0) { //if it's at the base position
+         if(stick.getRawButton(1) && !isClosed && !articulating) // if we're pressing the 'close' button & it's open
+            articulating = true;
+         else if(gamepad.getRawButton(8) && isClosed && !articulating)  //if we're pressing the 'open' button & it's closed
+            articulating = true;
+      }   
+
+      if(articulating && isClosed)
+         grab.set(0.5);
+      else if(articulating)
+         grab.set(-0.5);
+
+      if(grabRot.get() >= grabLimit) {
+         setGrabber(0);
+         grabRot.reset();
+         isClosed = true;
+      }
+      
+      if(grabRot.get() <= -grabLimit) {
+         setGrabber(0);
+         grabRot.reset();
+         isClosed = false;
+      }
    }
 
    
@@ -264,6 +304,7 @@ public class Robot extends TimedRobot {
 		SmartDashboard.putNumber("rate", testEncoder.getRate());
       
    }
+   
    
 }
 
