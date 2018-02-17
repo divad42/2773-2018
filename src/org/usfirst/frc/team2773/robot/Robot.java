@@ -42,7 +42,6 @@ public class Robot extends TimedRobot {
    static public Encoder BLE;
    static public Encoder BRE;
 
-   public Spark lowerBar;
    public Spark upperBar;
    //public Encoder lowEncoder;
    //public Encoder upEncoder;
@@ -75,6 +74,7 @@ public class Robot extends TimedRobot {
    public boolean isClosed;
    public boolean barMode;
    public boolean articulating;
+
    
    public SendableChooser<Character> startPos;
 
@@ -106,7 +106,9 @@ public class Robot extends TimedRobot {
       
       // grabber
       grab = new Spark(4);
+
       //grabRot = new Encoder(2, 3);
+
       isClosed = true;
       grabLimit = 0;
       articulating = false;
@@ -137,6 +139,7 @@ public class Robot extends TimedRobot {
       curRot = 0;
       accel = 0.01;
             
+
       // this is necessary to print to the console
       printer = new PrintCommand("abcderfjkdjs");
       printer.start();
@@ -354,6 +357,7 @@ public class Robot extends TimedRobot {
    
 
    public void fourBar(){
+
 	   if (barMode)
 		   fullBar(gamepad.getTwist());
 	   else
@@ -367,7 +371,34 @@ public class Robot extends TimedRobot {
 		   upperBar.set(-0.1);
 	   else
 		   upperBar.set(0);*/
-   }
+
+   
+  /* public void grabber() {
+      if(grabRot.get() == 0) { //if it's at the base position
+         if(stick.getRawButton(1) && !isClosed && !articulating) // if we're pressing the 'close' button & it's open
+            articulating = true;
+         else if(gamepad.getRawButton(8) && isClosed && !articulating)  //if we're pressing the 'open' button & it's closed
+            articulating = true;
+      }   
+
+      if(articulating && isClosed)
+         grab.set(0.5);
+      else if(articulating)
+         grab.set(-0.5);
+
+      if(grabRot.get() >= grabLimit) {
+         setGrabber(0);
+         grabRot.reset();
+         isClosed = true;
+      }
+      
+      if(grabRot.get() <= -grabLimit) {
+         setGrabber(0);
+         grabRot.reset();
+         isClosed = false;
+      }
+
+   }*/
 
    public void fullBar(double val) {
 	   
@@ -397,6 +428,7 @@ public class Robot extends TimedRobot {
 	  SmartDashboard.putString("startPos", startPos.getSelected().toString());
       
    }
+   
    
 }
 
