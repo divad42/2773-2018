@@ -197,10 +197,10 @@ public class Robot extends TimedRobot {
 			else 
 				autoStep++;
 		}
-		if(autoStep == 2) {
-			if(objectInt == 0)
+		if(autoStep >= 2) {
+			if(objectInt == 1)
 				driveScale(startChar, DriverStation.getInstance().getGameSpecificMessage().charAt(1));
-			else if(objectInt == 1) 
+			else if(objectInt == 0) 
 				driveSwitch(startChar, DriverStation.getInstance().getGameSpecificMessage().charAt(0));
 			else
 				autoLine();
