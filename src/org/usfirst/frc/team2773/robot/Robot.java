@@ -28,7 +28,7 @@ public class Robot extends TimedRobot {
 	//private String m_autoSelected;
 	//private SendableChooser<String> m_chooser = new SendableChooser<>();
    
-   public final double TILE_DISTANCE_RATE = 1;
+   public final double TILE_DISTANCE_RATE = 330.861363636;  // in degrees per foot
    public final double COMP_DISTANCE_RATE = 1;
    public double distRate; //= TILE or COMP rate 
    
@@ -85,7 +85,7 @@ public class Robot extends TimedRobot {
 	@Override
 	public void robotInit() {
    
-      distRate = COMP_DISTANCE_RATE; 
+      distRate = TILE_DISTANCE_RATE; 
      
 		//m_chooser.addDefault("Default Auto", kDefaultAuto);
 		//m_chooser.addObject("My Auto", kCustomAuto);
