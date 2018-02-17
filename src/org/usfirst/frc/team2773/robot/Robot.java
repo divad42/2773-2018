@@ -76,6 +76,9 @@ public class Robot extends TimedRobot {
    public boolean barMode;
    public boolean articulating;
    
+   public double autoDistY;
+   public double autoDistX;
+   
    public SendableChooser<Character> startPos;
 
 	/**
@@ -136,6 +139,10 @@ public class Robot extends TimedRobot {
       curYVel = 0;
       curRot = 0;
       accel = 0.01;
+      
+      // AutonomoussSwitch variables
+      autoDistY = 0;
+      autoDistX = 0;
             
       // this is necessary to print to the console
       printer = new PrintCommand("abcderfjkdjs");
@@ -240,6 +247,10 @@ public class Robot extends TimedRobot {
    
    public double speedFromEncoder() {
       return 4;
+   }
+   
+   public double distFromEncoders() {
+      return FLE.get();
    }
 
    @Override
@@ -372,6 +383,36 @@ public class Robot extends TimedRobot {
    public void fullBar(double val) {
 	   
    }
+   
+   public void driveSwitch(char switchSide, char startPos) {
+   // robot will already be 4 ft away from starting point.
+      if(switchSide == 'L') {
+         if(startPos == 'L' && autoStep == 2 && autoDistY <= 10 * distRate) {
+            drive(1, 0, 0);
+            autoDistY += distFromEncoder();
+         }
+         if(startPos == 'R' && autoStep == 2 && autoDistY <= 10 * distRate && autoDistX <= 16 * distRate) {
+            drive(1, 0, 0);
+            autoDistY += distFromEncoder();
+            drive(0, 1, 0);
+            autoDistX += distFromEncoder();
+         }
+      }
+      else if(switchSide == 'R') {
+         if(startPos == 'L' && autoStep == 2 && autoDistY <= 10 * distRate && autoDistX >= -16 * distRate) {
+            drive(1, 0, 0);
+            autoDistY += distFromEncoder();
+            drive(0, -1, 0);
+            autoDistX -= distFromEncoder();
+         }
+         if(startPos == 'R' && autoStep == 2 && autoDistY <= 10 * distRate) {
+            drive(1, 0, 0);
+            autoDistY += distFromEncoder();
+         }
+      }
+      else
+         errorMessage();
+   }
    public static void displayEncoderVals(){
       double[] vals = new double[4];
       vals[0] = FRE.get();
@@ -396,6 +437,10 @@ public class Robot extends TimedRobot {
 	   
 	  SmartDashboard.putString("startPos", startPos.getSelected().toString());
       
+   }
+   
+   public void errorMessage() {
+      SmartDashboard.putString("**ERROR**");
    }
    
 }
