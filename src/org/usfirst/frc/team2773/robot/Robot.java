@@ -247,6 +247,111 @@ public class Robot extends TimedRobot {
       drive.driveCartesian( curYVel, curXVel, curRot );
    }
    
+   public void autoLine() {
+      if (distFromEndcoder() < 18.140666 * distRate)
+         drive(0, 1, 0);
+   }
+   
+   public void driveScale(char pos, side) {
+      if(pos == 'L'){
+         if(side == 'L'){
+            if(autoStep == 2)
+            {
+               if (distFromEncoder() < 1.86 * distRate)
+                  drive(1,0,0);
+               else{
+                  drive(0,0,0);
+                  autoStep++;
+                  //let go of block
+                  //reset distance from Encoder
+               }
+            }
+            //lift 4 bar (increment autoStep to 4)
+            
+            if(autoStep == 4)
+            {
+               if (distFromEncoder() < 1.333 * distRate)
+                  drive(0,0.5,0);
+               else{
+                  drive(0,0,0);
+                  autoStep++;
+                  //let go of block
+                  //reset distance from Encoder
+         }
+         else if(side == 'R'){
+            if(autoStep == 2)
+            {
+               if (distFromEncoder() > -15 * distRate)
+                  drive(1,0,0);
+               else{
+                  drive(0,0,0);
+                  autoStep++;
+                  //let go of block
+                  //reset distance from Encoder
+               }
+            }
+            //lift 4 bar (increment autoStep to 3)
+            
+            if(autoStep == 4)
+            {
+               if (distFromEncoder() < 1.333 * distRate)
+                  drive(0,0.5,0);
+               else{
+                  drive(0,0,0);
+                  autoStep++;
+                  //let go of block
+                  //reset distance from Encoder
+         }
+      else if{pos == 'R'){
+         if(side == 'R'){
+            if (autoStep == 2)
+            {
+               if (distFromEncoder() < 1.86 * distRate)
+                  drive(-1,0,0);
+               else{
+                  drive(0,0,0);
+                  autoStep++;
+                  //let go of block
+                  //reset distance from Encoder
+               }
+            }
+            //lift 4 bar (increment autoStep to 3)
+            
+            if(autoStep == 4)
+            if (distFromEncoder() < 1.333 * distRate)
+               drive(0,0.5,0);
+            else{
+                  drive(0,0,0);
+                  autoStep++;
+                  //let go of block
+                  //reset distance from Encoder
+               }
+            }         
+         else if(side == 'L'){
+           if (autoStep == 2)
+            {
+               if (distFromEncoder() > -15 * distRate)
+                  drive(-1,0,0);
+               else{
+                  drive(0,0,0);
+                  autoStep++;
+                  //let go of block
+                  //reset distance from Encoder
+               }
+            }
+            //lift 4 bar (increment autoStep to 3)
+            
+            if(autoStep == 4)
+            if (distFromEncoder() < 1.333 * distRate)
+               drive(0,0.5,0);
+            else{
+                  drive(0,0,0);
+                  autoStep++;
+                  //let go of block
+                  //reset distance from Encoder
+               }
+            }            
+         }
    
    public double speedFromEncoder() {
       return 4;
