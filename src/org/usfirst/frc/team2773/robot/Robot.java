@@ -1,5 +1,9 @@
 // Version 1.0.0
+<<<<<<< HEAD
 // Updated grabber code and upper bar code and added rudimentary auto functions
+=======
+// Updated grabber code and upper bar code and added rudimentary auto and encoder functions
+>>>>>>> 73d10642094e3a0bb99b1022c5c54441e4c3f383
 
 package org.usfirst.frc.team2773.robot;
 
@@ -44,14 +48,14 @@ public class Robot extends TimedRobot {
 
    public Spark lowerBar;
    public Spark upperBar;
-   public Encoder lowEncoder;
-   public Encoder upEncoder;
+   //public Encoder lowEncoder;
+   //public Encoder upEncoder;
    
    public MecanumDrive drive;
    public Joystick gamepad;
    public Joystick stick;
    
-   public Encoder testEncoder;
+   //public Encoder testEncoder;
    
    public PrintCommand printer;
    
@@ -97,14 +101,20 @@ public class Robot extends TimedRobot {
       
       drive = new MecanumDrive(FL, BL, FR, BR);
       //PORT NUMS TEMPORARY!!!
+<<<<<<< HEAD
       FLE = new Encoder(4,5);
       FRE = new Encoder(2,3);
       //BLE = new Encoder(6,7);
+=======
+      FLE = new Encoder(2,3);
+      FRE = new Encoder(4,5);
+      BLE = new Encoder(6,7);
+>>>>>>> 73d10642094e3a0bb99b1022c5c54441e4c3f383
       BRE = new Encoder(0,1);
       
       // grabber
       grab = new Spark(4);
-      grabRot = new Encoder(2, 3);
+      //grabRot = new Encoder(2, 3);
       isClosed = true;
       grabLimit = 0;
       articulating = false;
@@ -112,8 +122,8 @@ public class Robot extends TimedRobot {
       // 4 bar
       lowerBar = new Spark(6);
       upperBar = new Spark(7);
-      upEncoder = new Encoder(4, 5);
-      lowEncoder = new Encoder(6, 7);
+      //upEncoder = new Encoder(4, 5);
+      //lowEncoder = new Encoder(6, 7);
       barMode = false;
       
       // these constants represent the limits of our 4-bar articulation
@@ -127,7 +137,7 @@ public class Robot extends TimedRobot {
       stick = new Joystick(1);
       
       // test encoder
-      testEncoder = new Encoder(0, 1);
+      //testEncoder = new Encoder(0, 1);
       
       // drive variables
       curXVel = 0;
@@ -216,13 +226,13 @@ public class Robot extends TimedRobot {
          
       // if the joystick is in the resting position, setting the motor to zero
       // should cause the robot to drift.   
-      if(x == 0)
+      if(x > -0.1 && x < 0.1)
          curXVel = 0;
          
-      if(y == 0)
+      if(y > -0.1 && y < 0.1)
          curYVel = 0;
          
-      if(z == 0)
+      if(z > -0.1 && z < 0.1)
          curRot = 0;
          
       drive.driveCartesian( curYVel, curXVel, curRot );
@@ -233,7 +243,16 @@ public class Robot extends TimedRobot {
       return 4;
    }
 
-	/**
+   @Override
+   public void teleopInit() {
+	   //testEncoder.reset();
+	   FRE.reset();
+	   FLE.reset();
+	   BRE.reset();
+	   BLE.reset();
+   }
+   
+   /**
 	 * This function is called periodically during operator control.
 	 */
 	@Override
@@ -241,7 +260,7 @@ public class Robot extends TimedRobot {
 		
       maxSpeed = (-stick.getThrottle() + 1) / 2;
       
-      drive(stick.getY(), stick.getX(), stick.getTwist());
+      drive(-stick.getY(), stick.getX(), stick.getTwist());
       fourBar();
       grabber();
       output();
@@ -257,7 +276,7 @@ public class Robot extends TimedRobot {
 	}
    
    public void grabber() {
-	   if(grabRot.get() == 0) // if it's at the base position
+	   /*if(grabRot.get() == 0) // if it's at the base position
 	      {
 	      if(stick.getRawButton(1) && !isClosed && !articulating)  	// trigger on joystick
 	          articulating = true;							
@@ -284,7 +303,7 @@ public class Robot extends TimedRobot {
 	         grabRot.reset();
 	         isClosed = false;
 	         articulating = false;
-	      }
+	      }*/
    }
    
 
@@ -296,17 +315,18 @@ public class Robot extends TimedRobot {
    }
    
    public void topBar(double val) {
-	   if(val < 0 && upEncoder.get() < maxUp)
+	   /*if(val < 0 && upEncoder.get() < maxUp)
 		   upperBar.set(0.1);
 	   else if(val > 0 && upEncoder.get() > minUp)
 		   upperBar.set(-0.1);
 	   else
-		   upperBar.set(0);
+		   upperBar.set(0);*/
    }
 
    public void fullBar(double val) {
 	   
    }
+<<<<<<< HEAD
    public static void displayEncoderRates(){
       double[] rates = new double[4];
       rates[0] = FRE.getRate();
@@ -316,17 +336,29 @@ public class Robot extends TimedRobot {
       
       for(int i = 0; i < rates.length; i++){
          SmartDashboard.putNumber("Rate of Encoder " + i, rates[i]);
+=======
+   public static void displayEncoderVals(){
+      double[] vals = new double[4];
+      vals[0] = FRE.get();
+      vals[1] = FLE.get(); 
+      vals[2] = BRE.get(); 
+      vals[3] = BLE.get(); 
+      
+      for(int i = 0; i < vals.length; i
+    		  							++) {
+         SmartDashboard.putNumber("Value of Encoder " + i, vals[i]);
+>>>>>>> 73d10642094e3a0bb99b1022c5c54441e4c3f383
       }
  
    }
    public void output() {
-      displayEncoderRates();
+      displayEncoderVals();
 	   DriverStation ds= DriverStation.getInstance();
       // display the values from the encoder to the SmartDashboard
 	   SmartDashboard.putString("GameData", ds.getGameSpecificMessage());
-	   SmartDashboard.putNumber("distance", testEncoder.getDistance());
-		SmartDashboard.putBoolean("direction", testEncoder.getDirection());
-		SmartDashboard.putNumber("rate", testEncoder.getRate());
+	  //SmartDashboard.putNumber("distance", testEncoder.getDistance());
+	 //SmartDashboard.putBoolean("direction", testEncoder.getDirection());
+	//SmartDashboard.putNumber("rate", testEncoder.getRate());
       
    }
    
