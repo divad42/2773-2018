@@ -1,5 +1,5 @@
-// Version 0.1.0
-// Updated grabber code and added rudamentary auto functions
+// Version 1.0.0
+// Updated grabber code and upper bar code and added rudimentary auto and encoder functions
 
 package org.usfirst.frc.team2773.robot;
 
@@ -23,28 +23,40 @@ import edu.wpi.first.wpilibj.DriverStation;
  * project.
  */
 public class Robot extends TimedRobot {
-	private static final String kDefaultAuto = "Default";
-	private static final String kCustomAuto = "My Auto";
+	//private static final String kDefaultAuto = "Default";
+	//private static final String kCustomAuto = "My Auto";
 	//private String m_autoSelected;
-	private SendableChooser<String> m_chooser = new SendableChooser<>();
+	//private SendableChooser<String> m_chooser = new SendableChooser<>();
+   
+   public final double TILE_DISTANCE_RATE = 330.861363636;  // in degrees per foot
+   public final double COMP_DISTANCE_RATE = 1;
+   public double distRate; //= TILE or COMP rate 
    
    public Victor FL;
    public Victor FR;
    public Victor BL;
    public Victor BR;
+   
+   static public Encoder FLE;
+   static public Encoder FRE;
+   static public Encoder BLE;
+   static public Encoder BRE;
 
    public Spark lowerBar;
    public Spark upperBar;
+   //public Encoder lowEncoder;
+   //public Encoder upEncoder;
    
    public MecanumDrive drive;
    public Joystick gamepad;
    public Joystick stick;
    
-   public Encoder testEncoder;
+   //public Encoder testEncoder;
    
    public PrintCommand printer;
    
    public double distance;
+   public double grabLimit;
    public int autoStep;
    
    public double curXVel;
@@ -52,12 +64,19 @@ public class Robot extends TimedRobot {
    public double curRot;
    public double maxSpeed;
    public double accel;
+   public static double maxUp;
+   public static double maxDown;
+   public static double minUp;
+   public static double minDown;
    
-   public Victor grab;
+   public Spark grab;
    public Encoder grabRot;
    
-   public boolean pickup;
-   public boolean drop;
+   public boolean isClosed;
+   public boolean barMode;
+   public boolean articulating;
+   
+   public SendableChooser<Character> startPos;
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -65,44 +84,69 @@ public class Robot extends TimedRobot {
 	 */
 	@Override
 	public void robotInit() {
-		m_chooser.addDefault("Default Auto", kDefaultAuto);
-		m_chooser.addObject("My Auto", kCustomAuto);
-		SmartDashboard.putData("Auto choices", m_chooser);
+   
+      distRate = TILE_DISTANCE_RATE; 
+     
+		//m_chooser.addDefault("Default Auto", kDefaultAuto);
+		//m_chooser.addObject("My Auto", kCustomAuto);
+		//SmartDashboard.putData("Auto choices", m_chooser);
       
       // wheels
-      FL = new Victor(0);
-      FR = new Victor(1);
-      BL = new Victor(2);
-      BR = new Victor(3);
+      FL = new Victor(3);
+      FR = new Victor(0);
+      BL = new Victor(1);
+      BR = new Victor(2);
       
       drive = new MecanumDrive(FL, BL, FR, BR);
+      //PORT NUMS TEMPORARY!!!
+      FLE = new Encoder(2,3);
+      FRE = new Encoder(4,5);
+      BLE = new Encoder(6,7);
+      BRE = new Encoder(0,1);
       
       // grabber
       grab = new Spark(4);
+      //grabRot = new Encoder(2, 3);
+      isClosed = true;
+      grabLimit = 0;
+      articulating = false;
 
       // 4 bar
       lowerBar = new Spark(6);
       upperBar = new Spark(7);
+      //upEncoder = new Encoder(4, 5);
+      //lowEncoder = new Encoder(6, 7);
+      barMode = false;
+      
+      // these constants represent the limits of our 4-bar articulation
+      maxUp = 360;
+      minUp = -360;
+      maxDown = 360;
+      minDown = -360;
       
       // the joysticks
       gamepad = new Joystick(0);
       stick = new Joystick(1);
       
-      // the encoder
-      testEncoder = new Encoder(0, 1);
+      // test encoder
+      //testEncoder = new Encoder(0, 1);
       
       // drive variables
       curXVel = 0;
       curYVel = 0;
       curRot = 0;
       accel = 0.01;
-      
-      pickup = false;
-      drop = false;
-      
+            
       // this is necessary to print to the console
       printer = new PrintCommand("abcderfjkdjs");
       printer.start();
+      
+      // the radio buttons for selecting our starting position
+      startPos = new SendableChooser<>();
+      startPos.addDefault("Center", new Character('C'));
+      startPos.addObject("Left", new Character('L'));
+      startPos.addObject("Right", new Character('R'));
+      SmartDashboard.putData("Starting Positions", startPos);
 	}
 
 	/**
@@ -181,13 +225,13 @@ public class Robot extends TimedRobot {
          
       // if the joystick is in the resting position, setting the motor to zero
       // should cause the robot to drift.   
-      if(x == 0)
+      if(x > -0.1 && x < 0.1)
          curXVel = 0;
          
-      if(y == 0)
+      if(y > -0.1 && y < 0.1)
          curYVel = 0;
          
-      if(z == 0)
+      if(z > -0.1 && z < 0.1)
          curRot = 0;
          
       drive.driveCartesian( curYVel, curXVel, curRot );
@@ -198,37 +242,26 @@ public class Robot extends TimedRobot {
       return 4;
    }
 
-	/**
+   @Override
+   public void teleopInit() {
+	   //testEncoder.reset();
+	   FRE.reset();
+	   FLE.reset();
+	   BRE.reset();
+	   BLE.reset();
+   }
+   
+   /**
 	 * This function is called periodically during operator control.
 	 */
 	@Override
 	public void teleopPeriodic() {
-      /*drive.driveCartesian(gamepad.getRawAxis(1), gamepad.getRawAxis(0), gamepad.getRawAxis(2));
-      grabber();*/
-      if(grabRot.get() == 0)
-      {
-      if(stick.getRawButton(1) && !isClosed)
-         setGrabber(0.5);
-      else if(gamepad.getRawButton(8) && isClosed)
-         setGrabber(-0.5)
-      }   
-      if(grabRot.get() >= threshold)
-      {
-         setGrabber(0);
-         grabRot.reset();
-         isClosed = true;
-      }
-      
-      if(grabRot.get() <= -threshold)
-      {
-         setGrabber(0);
-         grabRot.reset();
-         isClosed = false;
-      }
-      
+		
       maxSpeed = (-stick.getThrottle() + 1) / 2;
-      drive(stick.getY(), stick.getX(), stick.getZ());
       
+      drive(-stick.getY(), stick.getX(), stick.getTwist());
+      fourBar();
+      grabber();
       output();
 	}
 
@@ -241,23 +274,127 @@ public class Robot extends TimedRobot {
 		
 	}
    
-   public void setGrabber(double val) {
-      grab.set(val);
-      //come back and fix once we fully understand encoders.
+   //hold
+   public void grabber() {
+	   if(stick.getRawButton(1)){	// trigger on joystick
+         grab.set(0.5);	
+         hold = true;
+      }
+      else if(gamepad.getRawButton(8)){ 	// right trigger on gamepad
+         grab.set(-0.5);
+         hold = false;
+      }
+      else if(hold)
+         grab.set(0.01);
    }
+   //timeLimit
+   //curTime
+   //isClosing
+/*	   if(curTime == 0) // if it's at the base position
+	   {
+	      if(stick.getRawButton(1) && isClosed && !articulating) { 	// trigger on joystick
+	          articulating = true;	
+             isClosing = false;
+         }					
+	      
+         else if(gamepad.getRawButton(8) && !isClosed && !articulating) {	// right trigger on gamepad
+	    	  articulating = true;
+           isClosing = true;
+         }
+	   }   
+	   
+	   if(articulating && isClosing)
+	      grab.set(0.5);
+         
+	   else if(articulating && !isClosing)
+	   	grab.set(-0.5);
+      
+      if(curTime >= timeLimit)
+	   {
+	      grab.set(0);
+	      curTime = 0;
+         
+	      if(isClosing)
+            isClosed = true;
+         else
+            isClosed = false;
+          
+	      articulating = false;
+	   } /*
+	      
+      
+      /*if(grabRot.get() == 0) // if it's at the base position
+	      {
+	      if(stick.getRawButton(1) && !isClosed && !articulating)  	// trigger on joystick
+	          articulating = true;							
+	      else if(gamepad.getRawButton(8) && isClosed && !articulating)	// right trigger on gamepad
+	    	  articulating = true;
+	      }   
+	   
+	   	  if(articulating && isClosed)
+	   		  grab.set(0.5);
+	   	  else if(articulating)
+	   		  grab.set(-0.5);
+	   
+	      if(grabRot.get() >= grabLimit)
+	      {
+	         grab.set(0);
+	         grabRot.reset();
+	         isClosed = true;
+	         articulating = false;
+	      }
+	      
+	      if(grabRot.get() <= -grabLimit)
+	      {
+	         grab.set(0);
+	         grabRot.reset();
+	         isClosed = false;
+	         articulating = false;
+	      }*/
    
+
    public void fourBar(){
-   
+	   if (barMode)
+		   fullBar(gamepad.getTwist());
+	   else
+		   topBar(gamepad.getTwist());
    }
    
+   public void topBar(double val) {
+	   /*if(val < 0 && upEncoder.get() < maxUp)
+		   upperBar.set(0.1);
+	   else if(val > 0 && upEncoder.get() > minUp)
+		   upperBar.set(-0.1);
+	   else
+		   upperBar.set(0);*/
+   }
+
+   public void fullBar(double val) {
+	   
+   }
+   public static void displayEncoderVals(){
+      double[] vals = new double[4];
+      vals[0] = FRE.get();
+      vals[1] = FLE.get(); 
+      vals[2] = BRE.get(); 
+      vals[3] = BLE.get(); 
+      
+      for(int i = 0; i < vals.length; i
+    		  							++) {
+         SmartDashboard.putNumber("Value of Encoder " + i, vals[i]);
+      }
+ 
+   }
    public void output() {
-   
-	   DriverStation ds= DriverStation.getInstance();
+      displayEncoderVals();
+	  DriverStation ds= DriverStation.getInstance();
       // display the values from the encoder to the SmartDashboard
-	   SmartDashboard.putString("GameData", ds.getGameSpecificMessage());
-	   SmartDashboard.putNumber("distance", testEncoder.getDistance());
-		SmartDashboard.putBoolean("direction", testEncoder.getDirection());
-		SmartDashboard.putNumber("rate", testEncoder.getRate());
+	  SmartDashboard.putString("GameData", ds.getGameSpecificMessage());
+	  //SmartDashboard.putNumber("distance", testEncoder.getDistance());
+	  //SmartDashboard.putBoolean("direction", testEncoder.getDirection());
+	  //SmartDashboard.putNumber("rate", testEncoder.getRate());
+	   
+	  SmartDashboard.putString("startPos", startPos.getSelected().toString());
       
    }
    
