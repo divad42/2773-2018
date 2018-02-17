@@ -274,8 +274,56 @@ public class Robot extends TimedRobot {
 		
 	}
    
+   //hold
    public void grabber() {
-	   /*if(grabRot.get() == 0) // if it's at the base position
+	   if(stick.getRawButton(1)){	// trigger on joystick
+         grab.set(0.5);	
+         hold = true;
+      }
+      else if(gamepad.getRawButton(8)){ 	// right trigger on gamepad
+         grab.set(-0.5);
+         hold = false;
+      }
+      else if(hold)
+         grab.set(0.01);
+   }
+   //timeLimit
+   //curTime
+   //isClosing
+/*	   if(curTime == 0) // if it's at the base position
+	   {
+	      if(stick.getRawButton(1) && isClosed && !articulating) { 	// trigger on joystick
+	          articulating = true;	
+             isClosing = false;
+         }					
+	      
+         else if(gamepad.getRawButton(8) && !isClosed && !articulating) {	// right trigger on gamepad
+	    	  articulating = true;
+           isClosing = true;
+         }
+	   }   
+	   
+	   if(articulating && isClosing)
+	      grab.set(0.5);
+         
+	   else if(articulating && !isClosing)
+	   	grab.set(-0.5);
+      
+      if(curTime >= timeLimit)
+	   {
+	      grab.set(0);
+	      curTime = 0;
+         
+	      if(isClosing)
+            isClosed = true;
+         else
+            isClosed = false;
+          
+	      articulating = false;
+	   } /*
+	      
+      
+      /*if(grabRot.get() == 0) // if it's at the base position
 	      {
 	      if(stick.getRawButton(1) && !isClosed && !articulating)  	// trigger on joystick
 	          articulating = true;							
@@ -303,7 +351,6 @@ public class Robot extends TimedRobot {
 	         isClosed = false;
 	         articulating = false;
 	      }*/
-   }
    
 
    public void fourBar(){
