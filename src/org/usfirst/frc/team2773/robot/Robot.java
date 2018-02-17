@@ -267,18 +267,18 @@ public class Robot extends TimedRobot {
    
    //hold
    public void grabber() {
-      if(stick.getRawButton(1) && stick.getRawButton(4)){
-         grab.set(0.01);
 	   if(stick.getRawButton(1)){	// trigger on joystick
          grab.set(0.5);	
-         //hold = true;
-       }			
-      else if(gamepad.getRawButton(8)) 	// right trigger on gamepad
+         hold = true;
+      }
+      else if(gamepad.getRawButton(8)){ 	// right trigger on gamepad
          grab.set(-0.5);
+         hold = false;
+      }
       else if(hold)
-         grab.set(0);
+         grab.set(0.01);
    }
-      //timeLimit
+   //timeLimit
    //curTime
    //isClosing
 /*	   if(curTime == 0) // if it's at the base position
