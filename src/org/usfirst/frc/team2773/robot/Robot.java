@@ -183,27 +183,24 @@ public class Robot extends TimedRobot {
 	 */
 	@Override
 	public void autonomousPeriodic() {
-		/*switch (m_autoSelected) {
-			case kCustomAuto:
-				// Put custom auto code here
-				break;
-			case kDefaultAuto:
-			default:
-				// Put default auto code here
-				break;
-		}*/
-      
-      // In the first (zeroth?) step, the robot moves 12 feet
-		
-		output();
-		
-      if(autoStep == 0 && distance < 12) {
-         drive(0, 1, 0);
-      } else if(autoStep == 0) {
-         drive(0, 0, 0);
-         autoStep ++;
-      } else
-         drive(0, 0, 0);
+		double distance;
+		if(autoStep == 0){
+			if(currentTime < amountOfTimeToWait)
+				System.out.print("Taking A Snooze");
+			else
+				autoStep++;
+		}
+		if(autoStep == 1) {
+			if(distance <= distGoal)
+				moveFromCenter();
+			else 
+				autoStep++;
+		}
+		if(autoStep == 2) {
+			if(objectInt == 0)
+				driveScale(startChar, targetChar);
+			else if(objectInt == 1) 
+				driveSwitch(startChar, targetChar);
 			else
 				sleepyTimeEXE(:D);
 				
