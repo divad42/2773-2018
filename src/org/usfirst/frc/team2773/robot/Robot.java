@@ -169,6 +169,8 @@ public class Robot extends TimedRobot {
 		// m_autoSelected = SmartDashboard.getString("Auto Selector",
 		// 		kDefaultAuto);
 		System.out.println("Auto selected: " + m_autoSelected);*/
+      
+      //choose mode for autonomous
 	  
       distance = 0;
       autoStep = 0;
@@ -240,6 +242,97 @@ public class Robot extends TimedRobot {
       drive.driveCartesian( curYVel, curXVel, curRot );
    }
    
+   public void autoLine() {
+      if(disFromEncoder() < 18.140666 * distRate)
+         drive( 0, 1, 0);
+   }
+   
+   
+   public void driveScale(char pos, side) {
+      if(pos == 'L') {
+         if(side == 'L') {
+            if(autoStep == 2){
+               if(distFromEncoder() < 1.86 * distRate)
+                  drive( 1, 0, 0);
+            } else {
+               drive( 0, 0, 0);
+               autoStep++;
+               //reset distance from encoder
+            }
+            //lift four bar
+            
+            if(autoStep == 4) {   
+               if(distFromEncoder() < 1.3333 * distRate)
+                  drive( 0, 0.5, 0);
+            } else {
+               drive( 0, 0, 0);
+               autoStep++;
+               //reset distance from encoder
+            }
+         }
+         else if(side == 'R') {
+            if(autoStep == 2) {
+               if(distFromEncoder() < 15 * distRate)
+                  drive( 1, 0, 0);
+            } else {
+               drive( 0, 0, 0);
+               autoStep++;
+               //reset dist from encoder
+            }
+            //lift four bar
+            
+            if(autoStep == 4) {
+               if(distFromEncoder() < 1.3333 * distRate)
+                  drive( 0, 0.5, 0);
+            } else {
+               drive( 0, 0, 0);
+               autoStep++;
+               //reset dist from encoder
+            }
+         }
+      } else if(pos == 'R') {
+         if(side == 'R') {
+            if(autoStep == 2) {
+               if(distFromEncoder() < 1.86 * distRate)
+                  drive( -1, 0, 0);
+            } else {
+               drive( 0, 0, 0);
+               autoStep++;
+               //reset dist from encoder
+            }
+            //lift four bar (autoStep == 3)
+            
+            if(autoStep == 4) {   
+               if(distFromEncoder() < 1.3333 * distRate)
+                  drive( 0, 0.5, 0);
+            } else {
+               drive( 0, 0, 0);
+               autoStep++;
+               //reset dist from encoder
+            }
+         }
+         else if(side == 'L') {
+            if(autoStep == 2) {
+               if(distFromEncoder() < 15 * distRate)
+                  drive( -1, 0, 0);
+            } else {
+               drive( 0, 0, 0);
+               autoStep++;
+               //reset dist from encoder
+            }
+            //lift four bar (autoStep == 3)
+            
+            if(autoStep == 4) {
+               if(distFromEncoder() < 1.3333 * distRate)
+                  drive( 0, 0.5, 0);
+            } else {
+               drive( 0, 0, 0);
+               autoStep++;
+               //reset dist from encoder
+            }
+         }
+      }
+   }
    
    public double speedFromEncoder() {
       return 4;
@@ -371,7 +464,7 @@ public class Robot extends TimedRobot {
 		   upperBar.set(-0.1);
 	   else
 		   upperBar.set(0);*/
-
+   }
    
   /* public void grabber() {
       if(grabRot.get() == 0) { //if it's at the base position
