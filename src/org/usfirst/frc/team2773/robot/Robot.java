@@ -23,10 +23,10 @@ import edu.wpi.first.wpilibj.DriverStation;
  * project.
  */
 public class Robot extends TimedRobot {
-	private static final String kDefaultAuto = "Default";
-	private static final String kCustomAuto = "My Auto";
+	//private static final String kDefaultAuto = "Default";
+	//private static final String kCustomAuto = "My Auto";
 	//private String m_autoSelected;
-	private SendableChooser<String> m_chooser = new SendableChooser<>();
+	//private SendableChooser<String> m_chooser = new SendableChooser<>();
    
    public final double TILE_DISTANCE_RATE = 1;
    public final double COMP_DISTANCE_RATE = 1;
@@ -75,6 +75,8 @@ public class Robot extends TimedRobot {
    public boolean isClosed;
    public boolean barMode;
    public boolean articulating;
+   
+   public SendableChooser<Character> startPos;
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -85,9 +87,9 @@ public class Robot extends TimedRobot {
    
       distRate = COMP_DISTANCE_RATE; 
      
-		m_chooser.addDefault("Default Auto", kDefaultAuto);
-		m_chooser.addObject("My Auto", kCustomAuto);
-		SmartDashboard.putData("Auto choices", m_chooser);
+		//m_chooser.addDefault("Default Auto", kDefaultAuto);
+		//m_chooser.addObject("My Auto", kCustomAuto);
+		//SmartDashboard.putData("Auto choices", m_chooser);
       
       // wheels
       FL = new Victor(3);
@@ -138,6 +140,13 @@ public class Robot extends TimedRobot {
       // this is necessary to print to the console
       printer = new PrintCommand("abcderfjkdjs");
       printer.start();
+      
+      // the radio buttons for selecting our starting position
+      startPos = new SendableChooser<>();
+      startPos.addDefault("Center", new Character('C'));
+      startPos.addObject("Left", new Character('L'));
+      startPos.addObject("Right", new Character('R'));
+      SmartDashboard.putData("Starting Positions", startPos);
 	}
 
 	/**
@@ -331,12 +340,14 @@ public class Robot extends TimedRobot {
    }
    public void output() {
       displayEncoderVals();
-	   DriverStation ds= DriverStation.getInstance();
+	  DriverStation ds= DriverStation.getInstance();
       // display the values from the encoder to the SmartDashboard
-	   SmartDashboard.putString("GameData", ds.getGameSpecificMessage());
+	  SmartDashboard.putString("GameData", ds.getGameSpecificMessage());
 	  //SmartDashboard.putNumber("distance", testEncoder.getDistance());
-	 //SmartDashboard.putBoolean("direction", testEncoder.getDirection());
-	//SmartDashboard.putNumber("rate", testEncoder.getRate());
+	  //SmartDashboard.putBoolean("direction", testEncoder.getDirection());
+	  //SmartDashboard.putNumber("rate", testEncoder.getRate());
+	   
+	  SmartDashboard.putString("startPos", startPos.getSelected().toString());
       
    }
    
