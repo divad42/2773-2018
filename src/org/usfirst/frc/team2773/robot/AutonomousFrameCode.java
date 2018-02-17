@@ -1,24 +1,32 @@
 package org.usfirst.frc.team2773.robot;
+
+import edu.wpi.first.wpilibj.DriverStation;
+
 /**
  * 
  * @author Mr.Mamsy
  *
  */
 public class AutonomousFrameCode{
-	
-	static String sides; // == from GSM
+	static DriverStation ds; 
+	static String sides;
 	
 	static char startPos; // == L R or C //TODO also sendable value
 	static boolean doSwitch = true; //TODO Change this to sendable value later on!!!!!!
 	static int waitTime; //Another sendable function 
 
 	
-	static char switchSide = sides.charAt(0);
-	static char scaleSide = sides.charAt(1);
+	static char switchSide;
+	static char scaleSide;
 	
 	
 	static void defaultExecution() 
 	{
+		ds.getInstance();
+		sides = ds.getGameSpecificMessage();
+		switchSide = sides.charAt(0);
+		sides.charAt(1;)
+		
 		
 		if(doSwitch)
 		{
@@ -39,17 +47,20 @@ public class AutonomousFrameCode{
 		
 	}
 	
-	static void switchFrmSide(char s) {
+	static void switchProc(char side, char start) {
 		//goForward a bit
 		// turn slightly toward s
-		if(s == 'L')
-		{}
-		else 
-		{/*right code turn*/}
+		if(start == 'L')
+		{/*left side code switchFromLeft(start, side)*/}
+		else if(start == 'R') 
+		{/*right code turn swtichFromRight(start, side)*/}
+		else
+			switchFrmCenter();
 		findTape();
 		placeCubeSwtich();
 		
 	}
+	
 	
 	static void scaleFrmSide(char s) {}
 	

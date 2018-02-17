@@ -22,20 +22,25 @@ import edu.wpi.first.wpilibj.DriverStation;
  * creating this project, you must also update the build.properties file in the
  * project.
  */
-public class Robot extends TimedRobot {
-	//private static final String kDefaultAuto = "Default";
-	//private static final String kCustomAuto = "My Auto";
-	//private String m_autoSelected;
-	//private SendableChooser<String> m_chooser = new SendableChooser<>();
-   
+public class Robot extends TimedRobot {   
    public final double TILE_DISTANCE_RATE = 330.861363636;  // in degrees per foot
    public final double COMP_DISTANCE_RATE = 1;
-   public double distRate; //= TILE or COMP rate 
+   public static double distRate; //= TILE or COMP rate 
+   
+   public SendableChooser<Character> startPos;
+   public SendableChooser<Character> targetPos;
+   public SendableChooser<Integer> objectiveChoice;
+
+   public char startChar;
+   public char targetChar;
+   public int objectInt;
+   public boolean isSleep;
    
    public Victor FL;
    public Victor FR;
    public Victor BL;
    public Victor BR;
+   public MecanumDrive drive;
    
    static public Encoder FLE;
    static public Encoder FRE;
@@ -47,14 +52,10 @@ public class Robot extends TimedRobot {
    //public Encoder lowEncoder;
    //public Encoder upEncoder;
    
-   public MecanumDrive drive;
+   
    public Joystick gamepad;
    public Joystick stick;
-   
-   //public Encoder testEncoder;
-   
-   public PrintCommand printer;
-   
+         
    public double distance;
    public double grabLimit;
    public int autoStep;
@@ -62,8 +63,10 @@ public class Robot extends TimedRobot {
    public double curXVel;
    public double curYVel;
    public double curRot;
-   public double maxSpeed;
    public double accel;
+
+   
+   public double maxSpeed;
    public static double maxUp;
    public static double maxDown;
    public static double minUp;
@@ -76,7 +79,7 @@ public class Robot extends TimedRobot {
    public boolean barMode;
    public boolean articulating;
    
-   public SendableChooser<Character> startPos;
+
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -86,67 +89,69 @@ public class Robot extends TimedRobot {
 	public void robotInit() {
    
       distRate = TILE_DISTANCE_RATE; 
-     
-		//m_chooser.addDefault("Default Auto", kDefaultAuto);
-		//m_chooser.addObject("My Auto", kCustomAuto);
-		//SmartDashboard.putData("Auto choices", m_chooser);
-      
-      // wheels
+     	
+      //Wheel and Drive Objects
       FL = new Victor(3);
       FR = new Victor(0);
       BL = new Victor(1);
       BR = new Victor(2);
-      
       drive = new MecanumDrive(FL, BL, FR, BR);
-      //PORT NUMS TEMPORARY!!!
+      
+      //Encoder Declaration
       FLE = new Encoder(2,3);
       FRE = new Encoder(4,5);
       BLE = new Encoder(6,7);
       BRE = new Encoder(0,1);
       
-      // grabber
+      //Grabber and Related Data
       grab = new Spark(4);
-      //grabRot = new Encoder(2, 3);
       isClosed = true;
       grabLimit = 0;
       articulating = false;
 
-      // 4 bar
+      //4 Bar parts being declared
       lowerBar = new Spark(6);
       upperBar = new Spark(7);
       //upEncoder = new Encoder(4, 5);
       //lowEncoder = new Encoder(6, 7);
       barMode = false;
       
-      // these constants represent the limits of our 4-bar articulation
+      //Constraints 
       maxUp = 360;
       minUp = -360;
       maxDown = 360;
       minDown = -360;
       
-      // the joysticks
+      //Controller objects
       gamepad = new Joystick(0);
       stick = new Joystick(1);
       
-      // test encoder
-      //testEncoder = new Encoder(0, 1);
-      
-      // drive variables
-      curXVel = 0;
-      curYVel = 0;
-      curRot = 0;
+      //Drive Variables 
+      curXVel = 0.0;
+      curYVel = 0.0;
+      curRot = 0.0;
       accel = 0.01;
             
-      // this is necessary to print to the console
-      printer = new PrintCommand("abcderfjkdjs");
-      printer.start();
-      
-      // the radio buttons for selecting our starting position
+      //Start Position Radio Buttons in SmartDashboard
       startPos = new SendableChooser<>();
       startPos.addDefault("Center", new Character('C'));
       startPos.addObject("Left", new Character('L'));
       startPos.addObject("Right", new Character('R'));
       SmartDashboard.putData("Starting Positions", startPos);
+      
+      //Target Position Radio Buttons in SmartDashboard
+      targetPos = new SendableChooser<>();
+      targetPos.addDefault("Left", new Character('L'));
+      targetPos.addObject("Right", new Character('R'));
+      SmartDashboard.putData("Target Position", targetPos);
+      
+      //Selecting Objective with RadioButtons in SmartDashboard 
+      objectiveChoice = new SendableChooser<>();
+      objectiveChoice.addDefault("Switch", new Integer(0));
+      objectiveChoice.addObject("Scale", new Integer(1));
+      objectiveChoice.addObject("Baseline", new Integer(2));
+      SmartDashboard.putData("Target Objective", objectiveChoice);
+      
 	}
 
 	/**
@@ -162,13 +167,15 @@ public class Robot extends TimedRobot {
 	 */
 	@Override
 	public void autonomousInit() {
-		/*m_autoSelected = m_chooser.getSelected();
-		// m_autoSelected = SmartDashboard.getString("Auto Selector",
-		// 		kDefaultAuto);
-		System.out.println("Auto selected: " + m_autoSelected);*/
-	  
-      distance = 0;
-      autoStep = 0;
+		startChar = startPos.getSelected();
+		targetChar = targetPos.getSelected();
+		objectInt = objectiveChoice.getSelected().intValue();
+		
+		FRE.reset();
+		FLE.reset();
+		BRE.reset();
+		BLE.reset();
+		
 	}
 
 	/**
@@ -197,6 +204,10 @@ public class Robot extends TimedRobot {
          autoStep ++;
       } else
          drive(0, 0, 0);
+			else
+				sleepyTimeEXE(:D);
+				
+		}
       
 	}
    
@@ -236,15 +247,18 @@ public class Robot extends TimedRobot {
          
       drive.driveCartesian( curYVel, curXVel, curRot );
    }
-   
-   
+
+   //there be dragons here
    public double speedFromEncoder() {
       return 4;
+   }
+   
+   public double distFromEncoders() {
+	   return FLE.getDistance();
    }
 
    @Override
    public void teleopInit() {
-	   //testEncoder.reset();
 	   FRE.reset();
 	   FLE.reset();
 	   BRE.reset();
@@ -265,15 +279,7 @@ public class Robot extends TimedRobot {
       output();
 	}
 
-	/**
-	 * This function is called periodically during test mode.
-	 */
-	@Override
-	public void testPeriodic() {
-		
-		
-	}
-   
+   //This might need to be deprecated or there be dragons here
    public void grabber() {
 	   /*if(grabRot.get() == 0) // if it's at the base position
 	      {
@@ -313,6 +319,7 @@ public class Robot extends TimedRobot {
 		   topBar(gamepad.getTwist());
    }
    
+   //there be dragons here
    public void topBar(double val) {
 	   /*if(val < 0 && upEncoder.get() < maxUp)
 		   upperBar.set(0.1);
@@ -321,10 +328,11 @@ public class Robot extends TimedRobot {
 	   else
 		   upperBar.set(0);*/
    }
-
+   
+   //there be dragons here
    public void fullBar(double val) {
-	   
    }
+   
    public static void displayEncoderVals(){
       double[] vals = new double[4];
       vals[0] = FRE.get();
@@ -339,17 +347,14 @@ public class Robot extends TimedRobot {
  
    }
    public void output() {
-      displayEncoderVals();
-	  DriverStation ds= DriverStation.getInstance();
       // display the values from the encoder to the SmartDashboard
-	  SmartDashboard.putString("GameData", ds.getGameSpecificMessage());
-	  //SmartDashboard.putNumber("distance", testEncoder.getDistance());
-	  //SmartDashboard.putBoolean("direction", testEncoder.getDirection());
-	  //SmartDashboard.putNumber("rate", testEncoder.getRate());
-	   
+	  displayEncoderVals();
+
+	  SmartDashboard.putString("GameData", ds.getGameSpecificMessage());	   
 	  SmartDashboard.putString("startPos", startPos.getSelected().toString());
       
    }
+   
    
 }
 
