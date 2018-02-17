@@ -47,8 +47,8 @@ public class Robot extends TimedRobot {
    static public Encoder BLE;
    static public Encoder BRE;
 
-   public Spark lowerBar;
    public Spark upperBar;
+   public Spark lowerBar;
    //public Encoder lowEncoder;
    //public Encoder upEncoder;
    
@@ -78,6 +78,7 @@ public class Robot extends TimedRobot {
    public boolean isClosed;
    public boolean barMode;
    public boolean articulating;
+
    
 
 
@@ -132,7 +133,7 @@ public class Robot extends TimedRobot {
       curRot = 0.0;
       accel = 0.01;
             
-      //Start Position Radio Buttons in SmartDashboard
+      // the radio buttons for selecting our starting position
       startPos = new SendableChooser<>();
       startPos.addDefault("Center", new Character('C'));
       startPos.addObject("Left", new Character('L'));
@@ -185,7 +186,7 @@ public class Robot extends TimedRobot {
 	public void autonomousPeriodic() {
 		double distance;
 		if(autoStep == 0){
-			if(currentTime < amountOfTimeToWait)
+			if(currentTime < idk)
 				System.out.print("Taking A Snooze");
 			else
 				autoStep++;
@@ -198,11 +199,11 @@ public class Robot extends TimedRobot {
 		}
 		if(autoStep == 2) {
 			if(objectInt == 0)
-				driveScale(startChar, targetChar);
+				driveScale(startChar, DriverStation.getInstance().getGameSpecificMessage().charAt(1));
 			else if(objectInt == 1) 
-				driveSwitch(startChar, targetChar);
+				driveSwitch(startChar, DriverStation.getInstance().getGameSpecificMessage().charAt(0));
 			else
-				sleepyTimeEXE(:D);
+				autoLine();
 				
 		}
       
@@ -276,40 +277,24 @@ public class Robot extends TimedRobot {
       output();
 	}
 
-   //This might need to be deprecated or there be dragons here
+	
    public void grabber() {
-	   /*if(grabRot.get() == 0) // if it's at the base position
-	      {
-	      if(stick.getRawButton(1) && !isClosed && !articulating)  	// trigger on joystick
-	          articulating = true;							
-	      else if(gamepad.getRawButton(8) && isClosed && !articulating)	// right trigger on gamepad
-	    	  articulating = true;
-	      }   
-	   
-	   	  if(articulating && isClosed)
-	   		  grab.set(0.5);
-	   	  else if(articulating)
-	   		  grab.set(-0.5);
-	   
-	      if(grabRot.get() >= grabLimit)
-	      {
-	         grab.set(0);
-	         grabRot.reset();
-	         isClosed = true;
-	         articulating = false;
-	      }
-	      
-	      if(grabRot.get() <= -grabLimit)
-	      {
-	         grab.set(0);
-	         grabRot.reset();
-	         isClosed = false;
-	         articulating = false;
-	      }*/
+	   if(stick.getRawButton(1)){	// trigger on joystick
+         grab.set(0.5);	
+         isClosed = true;
+      }
+      else if(gamepad.getRawButton(8)){ 	// right trigger on gamepad
+         grab.set(-0.5);
+         isClosed = false;
+      }
+      else if(isClosed)
+         grab.set(0.01);
    }
-   
-
+	      
+      
+      
    public void fourBar(){
+
 	   if (barMode)
 		   fullBar(gamepad.getTwist());
 	   else
@@ -327,6 +312,7 @@ public class Robot extends TimedRobot {
    }
    
    //there be dragons here
+
    public void fullBar(double val) {
    }
    
@@ -347,7 +333,7 @@ public class Robot extends TimedRobot {
       // display the values from the encoder to the SmartDashboard
 	  displayEncoderVals();
 
-	  SmartDashboard.putString("GameData", ds.getGameSpecificMessage());	   
+	  SmartDashboard.putString("GameData", DriverStation.getInstance().getGameSpecificMessage());	   
 	  SmartDashboard.putString("startPos", startPos.getSelected().toString());
       
    }
