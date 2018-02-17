@@ -32,11 +32,13 @@ public class Robot extends TimedRobot {
    public final double COMP_DISTANCE_RATE = 1;
    public double distRate; //= TILE or COMP rate 
    
+   //Vect- I mean Victors
    public Victor FL;
    public Victor FR;
    public Victor BL;
    public Victor BR;
    
+   //Super Ultra Important Epic Awesome One-Of-A-Kind Exclusive Encoders
    static public Encoder FLE;
    static public Encoder FRE;
    static public Encoder BLE;
@@ -44,26 +46,24 @@ public class Robot extends TimedRobot {
 
    public Spark lowerBar;
    public Spark upperBar;
-   //public Encoder lowEncoder;
-   //public Encoder upEncoder;
    
+   //Drives and Joysticks
    public MecanumDrive drive;
    public Joystick gamepad;
    public Joystick stick;
-   
-   //public Encoder testEncoder;
-   
-   public PrintCommand printer;
    
    public double distance;
    public double grabLimit;
    public int autoStep;
    
+   //Helps control the speed of the driver method
    public double curXVel;
    public double curYVel;
    public double curRot;
    public double maxSpeed;
    public double accel;
+   
+   //Variables controlling the Minimums and Maximums of the grabber
    public static double maxUp;
    public static double maxDown;
    public static double minUp;
@@ -72,6 +72,7 @@ public class Robot extends TimedRobot {
    public Spark grab;
    public Encoder grabRot;
    
+   //Booleans of the unknown (for me atleast)
    public boolean isClosed;
    public boolean barMode;
    public boolean articulating;
@@ -112,8 +113,6 @@ public class Robot extends TimedRobot {
       // 4 bar
       lowerBar = new Spark(6);
       upperBar = new Spark(7);
-      //upEncoder = new Encoder(4, 5);
-      //lowEncoder = new Encoder(6, 7);
       barMode = false;
       
       // these constants represent the limits of our 4-bar articulation
@@ -126,18 +125,12 @@ public class Robot extends TimedRobot {
       gamepad = new Joystick(0);
       stick = new Joystick(1);
       
-      // test encoder
-      //testEncoder = new Encoder(0, 1);
-      
       // drive variables
       curXVel = 0;
       curYVel = 0;
       curRot = 0;
       accel = 0.01;
             
-      // this is necessary to print to the console
-      printer = new PrintCommand("abcderfjkdjs");
-      printer.start();
 	}
 
 	/**
@@ -153,10 +146,6 @@ public class Robot extends TimedRobot {
 	 */
 	@Override
 	public void autonomousInit() {
-		/*m_autoSelected = m_chooser.getSelected();
-		// m_autoSelected = SmartDashboard.getString("Auto Selector",
-		// 		kDefaultAuto);
-		System.out.println("Auto selected: " + m_autoSelected);*/
 	  
       distance = 0;
       autoStep = 0;
@@ -167,16 +156,6 @@ public class Robot extends TimedRobot {
 	 */
 	@Override
 	public void autonomousPeriodic() {
-		/*switch (m_autoSelected) {
-			case kCustomAuto:
-				// Put custom auto code here
-				break;
-			case kDefaultAuto:
-			default:
-				// Put default auto code here
-				break;
-		}*/
-      
       // In the first (zeroth?) step, the robot moves 12 feet
 		
 		output();
@@ -235,7 +214,6 @@ public class Robot extends TimedRobot {
 
    @Override
    public void teleopInit() {
-	   //testEncoder.reset();
 	   FRE.reset();
 	   FLE.reset();
 	   BRE.reset();
@@ -323,20 +301,16 @@ public class Robot extends TimedRobot {
       vals[2] = BRE.get(); 
       vals[3] = BLE.get(); 
       
-      for(int i = 0; i < vals.length; i
-    		  							++) {
+      for(int i = 0; i < vals.length; i++) {
          SmartDashboard.putNumber("Value of Encoder " + i, vals[i]);
       }
  
    }
    public void output() {
       displayEncoderVals();
-	   DriverStation ds= DriverStation.getInstance();
+	   DriverStation ds = DriverStation.getInstance();
       // display the values from the encoder to the SmartDashboard
 	   SmartDashboard.putString("GameData", ds.getGameSpecificMessage());
-	  //SmartDashboard.putNumber("distance", testEncoder.getDistance());
-	 //SmartDashboard.putBoolean("direction", testEncoder.getDirection());
-	//SmartDashboard.putNumber("rate", testEncoder.getRate());
       
    }
    
