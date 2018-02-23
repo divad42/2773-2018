@@ -1,6 +1,5 @@
-// Version 1.0.1
-// Updated the Drive function to be more compacted
-// Cleaned code and added Javadocs
+// Version 1.0.0
+
 
 package org.usfirst.frc.team2773.robot;
 
@@ -44,6 +43,7 @@ public class Robot extends TimedRobot {
    static public Encoder BLE;
    static public Encoder BRE;
 
+   //Used to control the lower bar and the upper bar
    public Spark lowerBar;
    public Spark upperBar;
    
@@ -52,6 +52,7 @@ public class Robot extends TimedRobot {
    public Joystick gamepad;
    public Joystick stick;
    
+   //Numeral Data
    public double distance;
    public double grabLimit;
    public int autoStep;
@@ -69,10 +70,11 @@ public class Robot extends TimedRobot {
    public static double minUp;
    public static double minDown;
    
+   //Grabber Stuff
    public Spark grab;
    public Encoder grabRot;
    
-   //Booleans of the unknown (for me atleast)
+   //Booleans of the Grabber
    public boolean isClosed;
    public boolean barMode;
    public boolean articulating;
@@ -175,7 +177,9 @@ public class Robot extends TimedRobot {
  * Drives the actual robot using the given double variables.
  * <p>
  * Uses the changeSpeed method.
- *
+ * @param x Value to drive the robot on the x axis. The x-axis controls left and right
+ * @param y Value to drive the robot on the y axis. The y-axis controls forward and backward
+ * @param z Value to rotate the robot by degrees. The robot will turn clockwise when the number is positive, and counterclockwise when the number is negative
  */
    public void drive(double x, double y, double z) {
          
@@ -215,7 +219,7 @@ public class Robot extends TimedRobot {
 
     /**
 	 * Resets all of the encoders used in the program when teleop is initalized.
-    * All other encoders that need to be reset will need to go here.
+    * <p>All other encoders that need to be reset will need to go here.
 	 */
    @Override
    public void teleopInit() {
@@ -227,7 +231,9 @@ public class Robot extends TimedRobot {
    
    /**
 	 * Allows the teleoperator to control the robot using the joystick.
-    * Can only be used during teleop.
+    * <p>When used, updates the SmartDashboard via the output() method
+    * <p>Drives using the drive() method
+    * <p>Can only be used during teleop.
 	 */
 	@Override
 	public void teleopPeriodic() {
@@ -319,6 +325,12 @@ public class Robot extends TimedRobot {
       }
  
    }
+   
+   /**
+   * Outputs the Encoder Values and the Gamedata
+   * <p>
+   * Uses the displayEncoderVals() method
+   */
    public void output() {
       displayEncoderVals();
 	   DriverStation ds = DriverStation.getInstance();
