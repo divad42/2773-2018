@@ -249,7 +249,7 @@ public class Robot extends TimedRobot {
       return 4;
    }
    
-   public double distFromEncoders() {
+   public double distFromEncoder() {
       return FLE.get();
    }
 
@@ -387,28 +387,30 @@ public class Robot extends TimedRobot {
    public void driveSwitch(char switchSide, char startPos) {
    // robot will already be 4 ft away from starting point.
       if(switchSide == 'L') {
-         if(startPos == 'L' && autoStep == 2 && autoDistY <= 10 * distRate) {
+         if(startPos == 'L' && autoStep == 2 && distFromEncoder() <= 10 * distRate) //drives forward
+            drive(1, 0, 0); 
+         if(startPos == 'R' && autoStep == 2 && distFromEncoder() <= 10 * distRate) //drives forward
             drive(1, 0, 0);
-            autoDistY += distFromEncoder();
-         }
-         if(startPos == 'R' && autoStep == 2 && autoDistY <= 10 * distRate && autoDistX <= 16 * distRate) {
-            drive(1, 0, 0);
-            autoDistY += distFromEncoder();
-            drive(0, 1, 0);
-            autoDistX += distFromEncoder();
-         }
+         else if (autoStep == 2)
+            autoStep++;
+         if(startPos == 'R' && autoStep == 3 && distFromEncoder() <= -16 * distRate) //goes left
+            drive(0, -1, 0);
+         else if(autoStep == 3)
+            autoStep++;//puts autoStep at 4 
       }
       else if(switchSide == 'R') {
-         if(startPos == 'L' && autoStep == 2 && autoDistY <= 10 * distRate && autoDistX >= -16 * distRate) {
+         if(startPos == 'L' && autoStep == 2 && autoDistY <= 10 * distRate) //drives forward
             drive(1, 0, 0);
-            autoDistY += distFromEncoder();
-            drive(0, -1, 0);
-            autoDistX -= distFromEncoder();
-         }
-         if(startPos == 'R' && autoStep == 2 && autoDistY <= 10 * distRate) {
+         else if(autoStep == 2)
+            autoStep++;
+         if(startPos == 'R' && autoStep == 2 && autoDistY <= 10 * distRate) //drives forward
             drive(1, 0, 0);
-            autoDistY += distFromEncoder();
-         }
+         else if(autoStep == 2)
+            autoStep++;
+         if(startPos == 'L' &&autoStep == 3 && distFromEncoder() >= 16* distRate)
+            drive(0, 1, 0);
+         else if(autoStep == 3)
+            autoStep++; 
       }
       else
          errorMessage();
