@@ -1,5 +1,6 @@
 // Version 1.0.0
-// Updated grabber code and upper bar code and added rudimentary auto and encoder functions
+// Updated grabber code and upper bar code and added rudimentary auto and encoder functions and also climber function
+// Halved the rotation speed in the drive method (not the rotation speed of the wench, wheels, 4-bar motors, etc.)
 
 package org.usfirst.frc.team2773.robot;
 
@@ -8,7 +9,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Victor;
 import edu.wpi.first.wpilibj.Spark;
-import edu.wpi.first.wpilibj.command.PrintCommand;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Encoder;
@@ -49,8 +49,8 @@ public class Robot extends TimedRobot {
 
    public Spark upperBar;
    public Spark lowerBar;
-   //public Encoder lowEncoder;
-   //public Encoder upEncoder;
+   public Encoder lowEncoder;
+   public Encoder upEncoder;
    
    
    public Joystick gamepad;
@@ -77,9 +77,10 @@ public class Robot extends TimedRobot {
    
    public boolean isClosed;
    public boolean barMode;
+   public boolean barModePressed;
    public boolean articulating;
 
-   
+   public Spark wench;
 
 
 	/**
@@ -106,16 +107,23 @@ public class Robot extends TimedRobot {
       
       //Grabber and Related Data
       grab = new Spark(4);
+      grab.setInverted(true);
       isClosed = true;
       grabLimit = 0;
       articulating = false;
 
-      //4 Bar parts being declared
+      /*//4 Bar parts being declared
       lowerBar = new Spark(6);
       upperBar = new Spark(7);
-      //upEncoder = new Encoder(4, 5);
-      //lowEncoder = new Encoder(6, 7);
+      upEncoder = new Encoder(4, 5);
+      upEncoder.reset();
+      lowEncoder = new Encoder(6, 7);
+      lowEncoder.reset();*/
       barMode = false;
+      barModePressed = false;
+      
+      //Climber related data
+      wench = new Spark(6);
       
       //Constraints 
       maxUp = 360;
@@ -184,9 +192,9 @@ public class Robot extends TimedRobot {
 	 */
 	@Override
 	public void autonomousPeriodic() {
-		double distance;
+		/*double distance;
 		if(autoStep == 0){
-			if(currentTime < idk)
+			if(currentTime < autoWait)
 				System.out.print("Taking A Snooze");
 			else
 				autoStep++;
@@ -205,7 +213,7 @@ public class Robot extends TimedRobot {
 			else
 				autoLine();
 				
-		}
+		}*/
       
 	}
    
@@ -227,10 +235,10 @@ public class Robot extends TimedRobot {
          curYVel += accel * y;
          
       if(z > 0 && curRot <= maxSpeed)
-         curRot += accel * z;
+         curRot += accel * z * 0.5;
      
       if(z < 0 && curRot >= (-1 * maxSpeed))
-         curRot += accel * z;
+         curRot += accel * z *0.5;
          
       // if the joystick is in the resting position, setting the motor to zero
       // should cause the robot to drift.   
@@ -274,12 +282,18 @@ public class Robot extends TimedRobot {
       drive(-stick.getY(), stick.getX(), stick.getTwist());
       fourBar();
       grabber();
+      climb();
       output();
 	}
 
 	
    public void grabber() {
-	   if(stick.getRawButton(1)){	// trigger on joystick
+	   if(isClosed)
+	         grab.set(0.25);
+	   else
+		   grab.set(0);
+	   
+	  if(stick.getRawButton(1)){	// trigger on joystick
          grab.set(0.5);	
          isClosed = true;
       }
@@ -287,33 +301,75 @@ public class Robot extends TimedRobot {
          grab.set(-0.5);
          isClosed = false;
       }
-      else if(isClosed)
-         grab.set(0.01);
+      
    }
 	      
       
-      
+// code is commented out when and only when the encoders are not plugged in.
    public void fourBar(){
-
-	   if (barMode)
+/*
+	   changeBarMode();
+	   
+	   if (barMode && !articulating)
 		   fullBar(gamepad.getTwist());
 	   else
 		   topBar(gamepad.getTwist());
    }
    
-   //there be dragons here
+   void changeBarMode() {
+	   if(gamepad.getRawButton(10) && !barModePressed) {
+		   barMode = !barMode;
+		   barModePressed = true;
+		   if(barMode)
+			   articulating = true;
+	   }
+	   else
+		   barModePressed = false;
+	   
+	   if(articulating) {
+		   if(lowEncoder.get() < upEncoder.get() - 1)
+			   lowerBar.set(0.1);
+		   else if(lowEncoder.get() > upEncoder.get() + 1)
+			   lowerBar.set(-0.1);
+		   else
+			   articulating = false;
+	   }
+   }
+
    public void topBar(double val) {
-	   /*if(val < 0 && upEncoder.get() < maxUp)
+	   if(val < 0 && upEncoder.get() < maxUp)
 		   upperBar.set(0.1);
 	   else if(val > 0 && upEncoder.get() > minUp)
 		   upperBar.set(-0.1);
 	   else
-		   upperBar.set(0);*/
+		   upperBar.set(0);
    }
-   
-   //there be dragons here
 
    public void fullBar(double val) {
+	   if(!articulating) {
+		   if(val < 0 && upEncoder.get() < maxUp) {
+			   upperBar.set(0.1);
+			   lowerBar.set(0.1);
+		   }
+		   else if(val > 0 && upEncoder.get() > minUp) {
+			   upperBar.set(-0.1);
+			   lowerBar.set(-0.1);
+		   }
+		   else {
+			   upperBar.set(0);
+			   lowerBar.set(0);
+		   }
+	   }*/
+   }
+   
+   public void climb() {
+	   if(stick.getRawButton(2))
+		   wench.set(1);
+	   else if(stick.getRawButton(5))
+		   wench.set(-1);
+	   else
+		   wench.set(0);
+	   
    }
    
    public static void displayEncoderVals(){
