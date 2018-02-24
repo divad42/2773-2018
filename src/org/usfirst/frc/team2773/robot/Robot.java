@@ -1,6 +1,7 @@
 // Version 1.0.0
 // Updated grabber code and upper bar code and added rudimentary auto and encoder functions
 
+
 package org.usfirst.frc.team2773.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -99,9 +100,9 @@ public class Robot extends TimedRobot {
       
       drive = new MecanumDrive(FL, BL, FR, BR);
       //PORT NUMS TEMPORARY!!!
-      FLE = new Encoder(2,3);
-      FRE = new Encoder(4,5);
-      BLE = new Encoder(6,7);
+      FLE = new Encoder(4,5);
+      FRE = new Encoder(2,3);
+      //BLE = new Encoder(6,7);
       BRE = new Encoder(0,1);
       
       // grabber
@@ -243,95 +244,106 @@ public class Robot extends TimedRobot {
    }
    
    public void autoLine() {
-      if(disFromEncoder() < 18.140666 * distRate)
-         drive( 0, 1, 0);
+      if (distFromEndcoder() < 18.140666 * distRate)//move from alliance wall to the scale
+         drive(0, 1, 0);
+      else{
+         autoStep++;
+         resetEncoders();
+      }
    }
    
-   
    public void driveScale(char pos, side) {
-      if(pos == 'L') {
-         if(side == 'L') {
-            if(autoStep == 2){
-               if(distFromEncoder() < 1.86 * distRate)
-                  drive( 1, 0, 0);
-            } else {
-               drive( 0, 0, 0);
-               autoStep++;
-               //reset distance from encoder
+      if(pos == 'L'){
+         if(side == 'L'){
+            if(autoStep == 2)
+            {
+               autoLine();
             }
-            //lift four bar
-            
-            if(autoStep == 4) {   
-               if(distFromEncoder() < 1.3333 * distRate)
-                  drive( 0, 0.5, 0);
-            } else {
-               drive( 0, 0, 0);
-               autoStep++;
-               //reset distance from encoder
+            if(autoStep == 3)
+            {
+               if (distFromEncoder() < 1.86 * distRate)//moving right to align with scale plate
+                  drive(1,0,0);
+               else{
+                  drive(0,0,0);
+                  autoStep++;
+               }
             }
-         }
-         else if(side == 'R') {
-            if(autoStep == 2) {
-               if(distFromEncoder() < 15 * distRate)
-                  drive( 1, 0, 0);
-            } else {
-               drive( 0, 0, 0);
-               autoStep++;
-               //reset dist from encoder
+        }
+         else if(side == 'R'){
+            if(autoStep == 2)
+            {
+               autoLine();
             }
-            //lift four bar
-            
-            if(autoStep == 4) {
-               if(distFromEncoder() < 1.3333 * distRate)
-                  drive( 0, 0.5, 0);
-            } else {
-               drive( 0, 0, 0);
-               autoStep++;
-               //reset dist from encoder
-            }
-         }
-      } else if(pos == 'R') {
-         if(side == 'R') {
-            if(autoStep == 2) {
-               if(distFromEncoder() < 1.86 * distRate)
-                  drive( -1, 0, 0);
-            } else {
-               drive( 0, 0, 0);
-               autoStep++;
-               //reset dist from encoder
-            }
-            //lift four bar (autoStep == 3)
-            
-            if(autoStep == 4) {   
-               if(distFromEncoder() < 1.3333 * distRate)
-                  drive( 0, 0.5, 0);
-            } else {
-               drive( 0, 0, 0);
-               autoStep++;
-               //reset dist from encoder
-            }
-         }
-         else if(side == 'L') {
-            if(autoStep == 2) {
-               if(distFromEncoder() < 15 * distRate)
-                  drive( -1, 0, 0);
-            } else {
-               drive( 0, 0, 0);
-               autoStep++;
-               //reset dist from encoder
-            }
-            //lift four bar (autoStep == 3)
-            
-            if(autoStep == 4) {
-               if(distFromEncoder() < 1.3333 * distRate)
-                  drive( 0, 0.5, 0);
-            } else {
-               drive( 0, 0, 0);
-               autoStep++;
-               //reset dist from encoder
+            if(autoStep == 3)
+            {
+               if (distFromEncoder() < 15 * distRate)
+                  drive(1,0,0);
+               else{
+                  drive(0,0,0);
+                  autoStep++;
+               }
             }
          }
       }
+     else if(pos == 'R'){
+         if(side == 'R'){
+            if(autoStep == 2)
+            {
+               autoLine();
+            }
+            if (autoStep == 3){
+               if (distFromEncoder() < 1.86 * distRate)//move left to align with right scale plate
+                  drive(-1,0,0);
+               else{
+                  drive(0,0,0);
+                  autoStep++;
+               }
+            }
+         }
+        else if(side == 'L'){
+            if(autoStep == 2)
+            {
+               autoLine();
+            }
+           if (autoStep == 3)
+            {
+               if (distFromEncoder() > -15 * distRate){
+                  drive(-1,0,0);
+               }
+               else{
+                  drive(0,0,0);
+                  autoStep++;
+               }
+            }
+               }
+           }
+         if(autoStep == 4)
+           {
+                  //lift 4 bar to a certain point
+                  barMode = true;
+                  while(upEncoder.get() < fullBar(val)) //not upEncoder
+                     upEncoder.get()++;
+                  autoStep++;
+            }
+            if(autoStep == 5)
+            {
+               if (distFromEncoder() < 1.333 * distRate){
+                  drive(0,0.5,0);
+                  }
+               else{
+                  drive(0,0,0);
+                  autoStep++;
+               }
+            }
+            if(autoStep == 6)
+            {
+                  //let go of block
+                  grab.set(-0.5);
+                  isClosed = false;
+                  //reset distance from Encoder
+                  resetEncoders();
+                  autoStep++;
+           }
    }
    
    public double speedFromEncoder() {
@@ -496,16 +508,15 @@ public class Robot extends TimedRobot {
    public void fullBar(double val) {
 	   
    }
-   public static void displayEncoderVals(){
-      double[] vals = new double[4];
-      vals[0] = FRE.get();
-      vals[1] = FLE.get(); 
-      vals[2] = BRE.get(); 
-      vals[3] = BLE.get(); 
+   public static void displayEncoderRates(){
+      double[] rates = new double[4];
+      rates[0] = FRE.getRate();
+      rates[1] = FLE.getRate(); 
+      rates[2] = BRE.getRate(); 
+      rates[3] = BLE.getRate(); 
       
-      for(int i = 0; i < vals.length; i
-    		  							++) {
-         SmartDashboard.putNumber("Value of Encoder " + i, vals[i]);
+      for(int i = 0; i < rates.length; i++){
+         SmartDashboard.putNumber("Rate of Encoder " + i, rates[i]);
       }
  
    }
