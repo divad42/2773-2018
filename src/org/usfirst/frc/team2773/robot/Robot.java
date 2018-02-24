@@ -23,9 +23,6 @@ import edu.wpi.first.wpilibj.DriverStation;
  * project.
  */
 public class Robot extends TimedRobot {
-	private static final String kDefaultAuto = "Default";
-	private static final String kCustomAuto = "My Auto";
-	private SendableChooser<String> m_chooser = new SendableChooser<>();
    
    public final double TILE_DISTANCE_RATE = 1;
    public final double COMP_DISTANCE_RATE = 1;
@@ -47,9 +44,9 @@ public class Robot extends TimedRobot {
    public Spark lowerBar;
    public Spark upperBar;
    public static double maxUp;
-   public static double maxDown;
+   public static double maxBoth;
    public static double minUp;
-   public static double minDown;
+   public static double minBoth;
    public boolean barMode;
    public boolean articulating;
    
@@ -59,8 +56,6 @@ public class Robot extends TimedRobot {
    public Joystick stick;
    
    //Numeral Data
-   public double distance;
-   public double grabLimit;
    public int autoStep;
    
    //Helps control the speed of the driver method
@@ -77,17 +72,11 @@ public class Robot extends TimedRobot {
 
    /**
  * Initalizes all of the needed variables to operate the robot.
- * <p>
- * All other global variables that are not initalized are required to go here.
  */
 	@Override
 	public void robotInit() {
    
       distRate = COMP_DISTANCE_RATE; 
-     
-		m_chooser.addDefault("Default Auto", kDefaultAuto);
-		m_chooser.addObject("My Auto", kCustomAuto);
-		SmartDashboard.putData("Auto choices", m_chooser);
       
       // wheels
       FL = new Victor(3);
@@ -117,8 +106,8 @@ public class Robot extends TimedRobot {
       // these constants represent the limits of our 4-bar articulation
       maxUp = 360;
       minUp = -360;
-      maxDown = 360;
-      minDown = -360;
+      maxBoth = 360;
+      minBoth = -360;
       
       // the joysticks
       gamepad = new Joystick(0);
@@ -170,9 +159,8 @@ public class Robot extends TimedRobot {
 	}
    
    /**
- * Drives the actual robot using the given double variables.
+ * Drives the actual robot using the given double variables using the changeSpeed method.
  * <p>
- * Uses the changeSpeed method.
  * @param x Value to drive the robot on the x axis. The x-axis controls left and right
  * @param y Value to drive the robot on the y axis. The y-axis controls forward and backward
  * @param z Value to rotate the robot by degrees. The robot will turn clockwise when the number is positive, and counterclockwise when the number is negative
@@ -187,7 +175,7 @@ public class Robot extends TimedRobot {
    }
    
      /**
-	 * Changes the requested value (curVel) by the requested value (val) and returns it
+	 * Changes the requested value (curVel) by the requested value (val) and returns it for a smoother acceleration
     * @param val The value to change the curVel by
     * @param curVel The value being changed by the val parameter
     * @return The changed number
@@ -229,12 +217,11 @@ public class Robot extends TimedRobot {
 	 * Allows the teleoperator to control the robot using the joystick.
     * <p>When used, updates the SmartDashboard via the output() method
     * <p>Drives using the drive() method
-    * <p>Can only be used during teleop.
 	 */
 	@Override
 	public void teleopPeriodic() {
 		
-      maxSpeed = (-stick.getThrottle() + 1) / 2;
+      maxSpeed = (-stick.getThrottle() + 1) / 2;      // sets the maximum speed of the robot using the slider
       
       drive(-stick.getY(), stick.getX(), stick.getTwist());
       fourBar();
@@ -243,7 +230,7 @@ public class Robot extends TimedRobot {
 	}
 
 	/**
-	 * This isn't even used. Why is it even here?
+	 * This will be used during test mode if we ever actually use it
 	 */
 	@Override
 	public void testPeriodic() {
