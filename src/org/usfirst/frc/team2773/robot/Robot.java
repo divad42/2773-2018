@@ -39,6 +39,10 @@ public class Robot extends TimedRobot {
    public int objectInt;
    public boolean isSleep;
    
+   //Auto Stuff
+   public int autoStep;
+   public Timer timer;
+   
    //Wheels
    public Victor FL;
    public Victor FR;
@@ -71,11 +75,7 @@ public class Robot extends TimedRobot {
    public Joystick gamepad;
    public Joystick stick;
          
-   public double distance;
    public double grabLimit;
-
-   //Numeral Data
-   public int autoStep;
    
    //Helps control the speed of the driver method
    public double curXVel;
@@ -84,18 +84,13 @@ public class Robot extends TimedRobot {
    public double maxSpeed;
    public double accel;
 
+   //Climber Motor
    public Spark wench;
 
    //Grabber Stuff
    public Spark grab;
    public Encoder grabRot;
    public boolean isClosed;
-
-   
-      // wheels
-   public Spark wench;
-   
-   public Timer timer;
    
 
 	/**
@@ -113,7 +108,6 @@ public class Robot extends TimedRobot {
       FR = new Victor(0);
       BL = new Victor(1);
       BR = new Victor(2);
-      distRate = TILE_DISTANCE_RATE; 
       drive = new MecanumDrive(FL, BL, FR, BR);
       
       //Encoder Declaration
@@ -174,12 +168,6 @@ public class Robot extends TimedRobot {
       startLoc.addObject("Right", new Character('R'));
       SmartDashboard.putData("Starting Positions", startLoc);
       
-      //Target Position Radio Buttons in SmartDashboard NOT HOW WE WANT TO DECIDE THIS
-      targetPos = new SendableChooser<>();
-      targetPos.addDefault("Left", new Character('L'));
-      targetPos.addObject("Right", new Character('R'));
-      SmartDashboard.putData("Target Position", targetPos);
-      
       //Selecting Objective with RadioButtons in SmartDashboard 
       objectiveChoice = new SendableChooser<>();
       objectiveChoice.addDefault("Switch", new Integer(0));
@@ -205,12 +193,8 @@ public class Robot extends TimedRobot {
 	@Override
 	public void autonomousInit() {
 
-      distance = 0;
       autoStep = 0;
 
-		startChar = startPos.getSelected();
-		targetChar = targetPos.getSelected();
-		objectInt = objectiveChoice.getSelected().intValue();
 		startChar = startLoc.getSelected();     // the starting position
 		objectInt = objectiveChoice.getSelected().intValue();		// whether we want the switch or scale
 		targetChar = DriverStation.getInstance().getGameSpecificMessage().charAt(objectInt);
@@ -291,7 +275,7 @@ public class Robot extends TimedRobot {
       if(val < 0 && curVel >= (-1 * maxSpeed))
          return (curVel += accel * val);
          
-            // if the joystick is in the resting position, setting the motor to zero
+      // if the joystick is in the resting position, setting the motor to zero
       // should cause the robot to drift.     
       if(val > -0.1 && val < 0.1)
          return 0;
@@ -302,12 +286,12 @@ public class Robot extends TimedRobot {
 	 * Returns the speed of the robot from the encoder
     * @return The speed of the robot from the encoder
 	 */
-   public double speedFromEncoder() {
-      return 4;
+   public double speedFromEncoders() {
+      return FLE.getRate();
    }
    /**
-    * balanceMotors     Attempts to corrects any motors going too fast based on encoder values 
-    * @param percentError     how far you will allow the encoder value can stray from average of the 4 encoders (eg 95% means it can be within 5% of average)
+    * balanceMotors     Attempts to correct any motors going too fast based on encoder values 
+    * @param percentError     how far to allow the encoder value can stray from average of the 4 encoders
     * @return void
     */
    public void balanceMotors(double percentError) {
@@ -361,13 +345,12 @@ public class Robot extends TimedRobot {
     * @return The distance from the encoders
 	 */
    
-   public double distFromEncoder() {
+   public double distFromEncoders() {
       return FLE.get();
    }
 
     /**
 	 * Utilizes the resetEncoders() method to reset the encoders when teleop is initalized
-    * <p>All other encoders that need to be reset will need to go here.
 	 */
    @Override
    public void teleopInit() {
@@ -436,7 +419,7 @@ public class Robot extends TimedRobot {
 // code is commented out when and only when the encoders are not plugged in.
 
    /**
-   *Controls the Four Bar. changeBarMode determines what bar(s) to change.
+   *Controls the Four Bar.
    */
    public void fourBar(){
 
@@ -449,7 +432,7 @@ public class Robot extends TimedRobot {
    }
    
    /**
-   *Determines whether the upper bar or both bars are controlled
+   *Determines what bar(s) to change.
    */
    void changeBarMode() {
 	   if(gamepad.getRawButton(10) && !barModePressed) {
@@ -648,7 +631,7 @@ public class Robot extends TimedRobot {
    }
    
     /**
-    * Displays the encoder values in the SmartDashboard.
+    * Displays the game data values in the SmartDashboard.
     * @see Encoder
     */
    public void output() {
