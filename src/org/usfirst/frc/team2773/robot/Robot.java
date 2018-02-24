@@ -36,7 +36,7 @@ public class Robot extends TimedRobot {
    public int objectInt;
    public boolean isSleep;
    
-   //Vect- I mean Victors
+   //Wheels
    public Victor FL;
    public Victor FR;
    public Victor BL;
@@ -64,7 +64,6 @@ public class Robot extends TimedRobot {
 
    
    //Drives and Joysticks
-   public MecanumDrive drive;
 
    public Joystick gamepad;
    public Joystick stick;
@@ -117,23 +116,18 @@ public class Robot extends TimedRobot {
       grabLimit = 0;
       articulating = false;
 
-      /*//4 Bar parts being declared
+      //4 Bar parts being declared
       lowerBar = new Spark(6);
       upperBar = new Spark(7);
       upEncoder = new Encoder(4, 5);
       upEncoder.reset();
       lowEncoder = new Encoder(6, 7);
-      lowEncoder.reset();*/
+      lowEncoder.reset();
       barMode = false;
       barModePressed = false;
       
       //Climber related data
       wench = new Spark(6);
-      
-      // 4 bar
-      lowerBar = new Spark(6);
-      upperBar = new Spark(7);
-      barMode = false;
       
       // these constants represent the limits of our 4-bar articulation
       maxUp = 360;
@@ -159,7 +153,7 @@ public class Robot extends TimedRobot {
       startPos.addObject("Right", new Character('R'));
       SmartDashboard.putData("Starting Positions", startPos);
       
-      //Target Position Radio Buttons in SmartDashboard
+      //Target Position Radio Buttons in SmartDashboard NOT HOW WE WANT TO DECIDE THIS
       targetPos = new SendableChooser<>();
       targetPos.addDefault("Left", new Character('L'));
       targetPos.addObject("Right", new Character('R'));
