@@ -371,6 +371,8 @@ public class Robot extends TimedRobot {
 		   topBar(gamepad.getTwist());
    }
    
+      
+   
    public void topBar(double val) {
 	   /*if(val < 0 && upEncoder.get() < maxUp)
 		   upperBar.set(0.1);
@@ -385,36 +387,114 @@ public class Robot extends TimedRobot {
    }
    
    public void driveSwitch(char switchSide, char startPos) {
-   // robot will already be 4 ft away from starting point.
-      if(switchSide == 'L') {
-         if(startPos == 'L' && autoStep == 2 && distFromEncoder() <= 10 * distRate) //drives forward
-            drive(1, 0, 0); 
-         if(startPos == 'R' && autoStep == 2 && distFromEncoder() <= 10 * distRate) //drives forward
-            drive(1, 0, 0);
-         else if (autoStep == 2)
-            autoStep++;
-         if(startPos == 'R' && autoStep == 3 && distFromEncoder() <= -16 * distRate) //goes left
-            drive(0, -1, 0);
-         else if(autoStep == 3)
-            autoStep++;//puts autoStep at 4 
-      }
-      else if(switchSide == 'R') {
-         if(startPos == 'L' && autoStep == 2 && autoDistY <= 10 * distRate) //drives forward
-            drive(1, 0, 0);
-         else if(autoStep == 2)
-            autoStep++;
-         if(startPos == 'R' && autoStep == 2 && autoDistY <= 10 * distRate) //drives forward
-            drive(1, 0, 0);
-         else if(autoStep == 2)
-            autoStep++;
-         if(startPos == 'L' &&autoStep == 3 && distFromEncoder() >= 16* distRate)
+      if(autoStep == 2) { //moves the robot forwards to the middle of either side of the switch
+         if(distFromEncoder <= 12.5 * distRate) //drive it forward regardless of the side
             drive(0, 1, 0);
-         else if(autoStep == 3)
-            autoStep++; 
+         else { //increments autoStep
+            autoStep++;
+            resetEncoders();
+         }
       }
-      else
-         errorMessage();
+      if(autoStep == 3) { //moves the robot past the switch if necessary.
+         if(startPos == switchSide) 
+            autoStep++;
+         else {
+            if(distFromEncoder <= 7 * distRate)
+               drive(1, 0, 0);
+            else {
+               autoStep++;
+               resetEncoders();
+            }
+         }
+      }
+      if(autoStep == 4) { //moving across the switch horizontally
+         if(startPos == switchSide)
+            autoStep++;
+         else {
+            if(switchSide == 'R') {
+               if(distFromEncoder >= -19 * distRate)
+                  drive(0, -1, 0);
+               else {
+                  autoStep++;
+                  resetEncoders();
+               }
+            }
+            else {
+               if(distFromEncoder <= 19 * distRate)
+                  drive(0, 1, 0);
+               else {
+                  autoStep++;
+                  resetEncoders();
+               }
+            }
+         }         
+      }
+      if(autoStep == 5) {  //moves backwards to the desired location in the middle of each side.
+         if(startPos == switchSide)  //increments autoStep because it is in position to rotate.
+            autoStep++;
+         else {
+            if(distFromEncoder >= 7 * distRate)
+               drive(-1, 0, 0);
+            else {
+               autoStep++;
+               resetEncoders();
+            }
+         }
+      }    
+      if(autoStep == 6) { //rotates the robot 90 degrees in the appropriate direciton
+         if(switchSide == 'L') 
+            if(distFromEncoder <= 90 * degRate)
+               drive(0, 0, 1);
+            else {
+               autoStep++;
+               resetEncoders();
+            }
+         else {
+            if(distFromEncoder >= -90 * degRate)
+               drive(0, 0, -1);   
+            else {
+               autoStep++;
+               resetEncoders();
+            }
+         }
+      }
+      if(autoStep == 7) { //moves the fourbar up
+         //James told me to do this cuz none of us know how to use the fourbar method.
+         if(upEncoder.get() <= upMax)
+            upperBar(0.5);
+         else {
+            autoStep++;
+            upEncoder.reset();
+         }
+      }
+      if(autoStep == 8) { //expels the cube from the grabber.
+         int i = 0;
+         if(i <= 2000)
+            grab.set(-0.5);//do this for a few seconds
+         else {
+            autoStep++;
+            grab.set(0);
+         }
+      }
+      if(autoStep == 9) { //moves the fourbar back down.
+         if(upEncoder.get() >= upMin)
+            upperBar(-0.5);
+         else {
+            autoStep++;
+            upEncoder.reset();
+         }
+      }  
+      //we don't know what to do after this step.             
    }
+   
+   public void resetEncoders()
+   {
+   	FRE.reset();
+	   FLE.reset();
+	   BRE.reset();
+	   BLE.reset();
+   }
+   
    public static void displayEncoderVals(){
       double[] vals = new double[4];
       vals[0] = FRE.get();
