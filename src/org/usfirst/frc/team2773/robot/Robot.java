@@ -91,17 +91,12 @@ public class Robot extends TimedRobot {
    public Encoder grabRot;
    public boolean isClosed;
 
-   /**
- * Initalizes all of the needed variables to operate the robot.
- */
-	@Override
-	public void robotInit() {
    
       // wheels
    public Spark wench;
    
    public Timer timer;
-
+   
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -253,6 +248,9 @@ public class Robot extends TimedRobot {
       
 	}
 	
+   /**
+   *Moves the robot away from the center to a position to get to the right switch
+   */
 	public void moveFromCenter() {
 		if(targetChar == 'R')
 			drive(0, 1, 0);
@@ -273,16 +271,7 @@ public class Robot extends TimedRobot {
       curYVel = changeSpeed(y, curYVel);
       curRot = changeSpeed(z, curRot);
 
-      // if the joystick is in the resting position, setting the motor to zero
-      // should cause the robot to drift.   
-      if(x > -0.1 && x < 0.1)
-         curXVel = 0;
-         
-      if(y > -0.1 && y < 0.1)
-         curYVel = 0;
-         
-      if(z > -0.1 && z < 0.1)
-         curRot = 0;
+ 
 
       drive.driveCartesian( curYVel, curXVel, curRot );
       
@@ -302,6 +291,8 @@ public class Robot extends TimedRobot {
       if(val < 0 && curVel >= (-1 * maxSpeed))
          return (curVel += accel * val);
          
+            // if the joystick is in the resting position, setting the motor to zero
+      // should cause the robot to drift.     
       if(val > -0.1 && val < 0.1)
          return 0;
    }
@@ -313,7 +304,7 @@ public class Robot extends TimedRobot {
 	 */
    public double speedFromEncoder() {
       return 4;
-
+   }
    /**
     * balanceMotors     Attempts to corrects any motors going too fast based on encoder values 
     * @param percentError     how far you will allow the encoder value can stray from average of the 4 encoders (eg 95% means it can be within 5% of average)
@@ -324,17 +315,17 @@ public class Robot extends TimedRobot {
 		   boolean changed = false; //Controls whether the specific motor has been modified
 		   double[] velocity = new double[4]; //stores absolute value rate of all 4 encoders
 		   Encoder[] encoders = new Encoder[4]; // all 4 encoders
-		    encoders[0] = FRE;
-		   	encoders[1] = FLE;
-		   	encoders[2] = BRE;
-		   	encoders[3] = BLE;
+		   encoders[0] = FRE;
+		   encoders[1] = FLE;
+		   encoders[2] = BRE;
+		   encoders[3] = BLE;
 		   Victor[] victors = new Victor[4]; //all 4 motors
 		    victors[0] = FR;
 		    victors[1] = FL;
 		    victors[2] = BR;
 		    victors[3] = BL;
 		   double[] rateAdjustments = {1,1,1,1}; //base adjustment rate
-		   while(changed == false) {
+		   while(!changed) {
 			   changed = false;
 			   velocity[0] = Math.abs(FRE.getRate());
 			   velocity[1] = Math.abs(FLE.getRate());
@@ -360,10 +351,8 @@ public class Robot extends TimedRobot {
 			   for(double d: rateAdjustments)
 				   if(d <= .7)
 					   changed = false;
-				   
-		   }
-	   }
-
+			}	   
+      }
    }
 
 
@@ -371,9 +360,6 @@ public class Robot extends TimedRobot {
 	 * Returns the distance from the encoders
     * @return The distance from the encoders
 	 */
-   public double distFromEncoders() {
-	   return FLE.getDistance();
-   }
    
    public double distFromEncoder() {
       return FLE.get();
@@ -643,15 +629,10 @@ public class Robot extends TimedRobot {
       if(autoStep > 9)
          drive(0, 0, 0);       
    }
-   
-   public void resetEncoders()
-   {
-   	FRE.reset();
-	   FLE.reset();
-	   BRE.reset();
-	   BLE.reset();
-   }
 
+   /**
+   *Displays the encoder values on the SmartDashboard
+   */
    public static void displayEncoderVals(){
       double[] vals = new double[4];
       vals[0] = FRE.get();
