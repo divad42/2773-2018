@@ -199,17 +199,27 @@ public class Robot extends TimedRobot {
 	@Override
 	public void autonomousPeriodic() {
 
-      // In the first (zeroth?) step, the robot moves 12 feet
-		
-		output();
-		
-      if(autoStep == 0 && distance < 12) {
-         drive(0, 1, 0);
-      } else if(autoStep == 0) {
-         drive(0, 0, 0);
-         autoStep ++;
-      } else
-         drive(0, 0, 0);
+		if(autoStep == 0){
+			if(currentTime < autoWait)
+				System.out.print("Taking A Snooze");
+			else
+				autoStep++;
+		}
+		if(autoStep == 1) {
+			if(distance <= distGoal)
+				moveFromCenter();
+			else 
+				autoStep++;
+		}
+		if(autoStep >= 2) {
+			if(objectInt == 1)
+				driveScale(startChar, DriverStation.getInstance().getGameSpecificMessage().charAt(1));
+			else if(objectInt == 0) 
+				driveSwitch(startChar, DriverStation.getInstance().getGameSpecificMessage().charAt(0));
+			else
+				autoLine();
+				
+		}
       
 	}
    
