@@ -24,11 +24,13 @@ import edu.wpi.first.wpilibj.Timer;
  * project.
  */
 public class Robot extends TimedRobot {   
-   public final double TILE_DISTANCE_RATE = 330.861363636;  // in degrees per foot
+   public final double TILE_DISTANCE_RATE_COMPBOT = 330.861363636;  // in degrees per foot
    public final double COMP_DISTANCE_RATE = 1;
+   public final double TILE_ROTATION_RATE_PRACTICEBOT = 1;
    public static double distRate; //= TILE or COMP rate 
+   public static double degRate;
    
-   public SendableChooser<Character> startPos;
+   public SendableChooser<Character> startLoc;
    public SendableChooser<Character> targetPos;
    public SendableChooser<Integer> objectiveChoice;
 
@@ -93,7 +95,8 @@ public class Robot extends TimedRobot {
 	@Override
 	public void robotInit() {
    
-      distRate = TILE_DISTANCE_RATE; 
+      distRate = TILE_DISTANCE_RATE_COMPBOT; 
+      degRate = TILE_ROTATION_RATE_PRACTICEBOT;
      	
       //Wheel and Drive Objects
       FL = new Victor(3);
@@ -143,13 +146,14 @@ public class Robot extends TimedRobot {
       curYVel = 0.0;
       curRot = 0.0;
       accel = 0.01;
+      
             
       // the radio buttons for selecting our starting position
-      startPos = new SendableChooser<>();
-      startPos.addDefault("Center", new Character('C'));
-      startPos.addObject("Left", new Character('L'));
-      startPos.addObject("Right", new Character('R'));
-      SmartDashboard.putData("Starting Positions", startPos);
+      startLoc = new SendableChooser<>();
+      startLoc.addDefault("Center", new Character('C'));
+      startLoc.addObject("Left", new Character('L'));
+      startLoc.addObject("Right", new Character('R'));
+      SmartDashboard.putData("Starting Positions", startLoc);
       
       //Target Position Radio Buttons in SmartDashboard
       targetPos = new SendableChooser<>();
@@ -181,7 +185,7 @@ public class Robot extends TimedRobot {
 	 */
 	@Override
 	public void autonomousInit() {
-		startChar = startPos.getSelected();     // the starting position
+		startChar = startLoc.getSelected();     // the starting position
 		objectInt = objectiveChoice.getSelected().intValue();		// whether we want the switch or scale
 		targetChar = DriverStation.getInstance().getGameSpecificMessage().charAt(objectInt);
 		
@@ -321,6 +325,10 @@ public class Robot extends TimedRobot {
    public double distFromEncoders() {
 	   return FLE.getDistance();
    }
+   
+   public double distFromEncoder() {
+      return FLE.get();
+   }
 
    @Override
    public void teleopInit() {
@@ -366,7 +374,7 @@ public class Robot extends TimedRobot {
       
 // code is commented out when and only when the encoders are not plugged in.
    public void fourBar(){
-/*
+
 	   changeBarMode();
 	   
 	   if (barMode && !articulating)
@@ -395,6 +403,7 @@ public class Robot extends TimedRobot {
 	   }
    }
 
+
    public void topBar(double val) {
 	   if(val < 0 && upEncoder.get() < maxUp)
 		   upperBar.set(0.1);
@@ -418,7 +427,7 @@ public class Robot extends TimedRobot {
 			   upperBar.set(0);
 			   lowerBar.set(0);
 		   }
-	   }*/
+	   }
    }
    
    public void climb() {
@@ -429,6 +438,120 @@ public class Robot extends TimedRobot {
 	   else
 		   wench.set(0);
 	   
+   }
+   
+
+   public void driveSwitch(char startPos, char switchSide) {
+      if(autoStep == 2) { //moves the robot forwards to the middle of either side of the switch
+         if(distFromEncoders() <= 12.5 * distRate) //drive it forward regardless of the side
+            drive(0, 1, 0);
+         else { //increments autoStep
+            autoStep++;
+            resetEncoders();
+         }
+      }
+      if(autoStep == 3) { //moves the robot past the switch if necessary.
+         if(startPos == switchSide) 
+            autoStep++;
+         else {
+            if(distFromEncoders() <= 7 * distRate)
+               drive(1, 0, 0);
+            else {
+               autoStep++;
+               resetEncoders();
+            }
+         }
+      }
+      if(autoStep == 4) { //moving across the switch horizontally
+         if(startPos == switchSide)
+            autoStep++;
+         else {
+            if(switchSide == 'R') {
+               if(distFromEncoders() >= -19 * distRate)
+                  drive(0, -1, 0);
+               else {
+                  autoStep++;
+                  resetEncoders();
+               }
+            }
+            else {
+               if(distFromEncoders() <= 19 * distRate)
+                  drive(0, 1, 0);
+               else {
+                  autoStep++;
+                  resetEncoders();
+               }
+            }
+         }         
+      }
+      if(autoStep == 5) {  //moves backwards to the desired location in the middle of each side.
+         if(startPos == switchSide)  //increments autoStep because it is in position to rotate.
+            autoStep++;
+         else {
+            if(distFromEncoders() >= 7 * distRate)
+               drive(-1, 0, 0);
+            else {
+               autoStep++;
+               resetEncoders();
+            }
+         }
+      }    
+      if(autoStep == 6) { //rotates the robot 90 degrees in the appropriate direciton
+         if(switchSide == 'L') 
+            if(distFromEncoders() <= 90 * degRate)
+               drive(0, 0, 1);
+            else {
+               autoStep++;
+               resetEncoders();
+            }
+         else {
+            if(distFromEncoders() >= -90 * degRate)
+               drive(0, 0, -1);   
+            else {
+               autoStep++;
+               resetEncoders();
+            }
+         }
+      }
+      if(autoStep == 7) { //moves the fourbar up
+         if(upEncoder.get() <= maxUp)
+            topBar(0.5);
+         else {
+            autoStep++;
+            upEncoder.reset();
+         }
+         drive(0, 0, 0);
+      }
+      if(autoStep == 8) { //expels the cube from the grabber.
+         int i = 0;
+         if(i <= 2000)
+            grab.set(-0.5);//do this for a few seconds
+         else {
+            autoStep++;
+            grab.set(0);
+            isClosed = false;
+         }
+         drive(0, 0, 0);
+      }
+      if(autoStep == 9) { //moves the fourbar back down.
+         if(upEncoder.get() >= minUp)
+            topBar(-0.5);
+         else {
+            autoStep++;
+            upEncoder.reset();
+         }
+         drive(0, 0, 0);
+      }
+      if(autoStep > 9)
+         drive(0, 0, 0);       
+   }
+   
+   public void resetEncoders()
+   {
+   	FRE.reset();
+	   FLE.reset();
+	   BRE.reset();
+	   BLE.reset();
    }
    
    public static void displayEncoderVals(){
@@ -449,10 +572,9 @@ public class Robot extends TimedRobot {
 	  displayEncoderVals();
 
 	  SmartDashboard.putString("GameData", DriverStation.getInstance().getGameSpecificMessage());	   
-	  SmartDashboard.putString("startPos", startPos.getSelected().toString());
+	  SmartDashboard.putString("startPos", startLoc.getSelected().toString());
       
    }
-   
    
 }
 
