@@ -1,9 +1,6 @@
 // Version 1.0.0
-<<<<<<< HEAD
-// Updated grabber code and upper bar code and added rudimentary auto functions
-=======
 // Updated grabber code and upper bar code and added rudimentary auto and encoder functions
->>>>>>> 73d10642094e3a0bb99b1022c5c54441e4c3f383
+
 
 package org.usfirst.frc.team2773.robot;
 
@@ -46,7 +43,6 @@ public class Robot extends TimedRobot {
    static public Encoder BLE;
    static public Encoder BRE;
 
-   public Spark lowerBar;
    public Spark upperBar;
    //public Encoder lowEncoder;
    //public Encoder upEncoder;
@@ -79,6 +75,7 @@ public class Robot extends TimedRobot {
    public boolean isClosed;
    public boolean barMode;
    public boolean articulating;
+
    
    public SendableChooser<Character> startPos;
 
@@ -103,20 +100,16 @@ public class Robot extends TimedRobot {
       
       drive = new MecanumDrive(FL, BL, FR, BR);
       //PORT NUMS TEMPORARY!!!
-<<<<<<< HEAD
       FLE = new Encoder(4,5);
       FRE = new Encoder(2,3);
       //BLE = new Encoder(6,7);
-=======
-      FLE = new Encoder(2,3);
-      FRE = new Encoder(4,5);
-      BLE = new Encoder(6,7);
->>>>>>> 73d10642094e3a0bb99b1022c5c54441e4c3f383
       BRE = new Encoder(0,1);
       
       // grabber
       grab = new Spark(4);
+
       //grabRot = new Encoder(2, 3);
+
       isClosed = true;
       grabLimit = 0;
       articulating = false;
@@ -147,6 +140,7 @@ public class Robot extends TimedRobot {
       curRot = 0;
       accel = 0.01;
             
+
       // this is necessary to print to the console
       printer = new PrintCommand("abcderfjkdjs");
       printer.start();
@@ -176,6 +170,8 @@ public class Robot extends TimedRobot {
 		// m_autoSelected = SmartDashboard.getString("Auto Selector",
 		// 		kDefaultAuto);
 		System.out.println("Auto selected: " + m_autoSelected);*/
+      
+      //choose mode for autonomous
 	  
       distance = 0;
       autoStep = 0;
@@ -466,6 +462,7 @@ public class Robot extends TimedRobot {
    
 
    public void fourBar(){
+
 	   if (barMode)
 		   fullBar(gamepad.getTwist());
 	   else
@@ -480,11 +477,37 @@ public class Robot extends TimedRobot {
 	   else
 		   upperBar.set(0);*/
    }
+   
+  /* public void grabber() {
+      if(grabRot.get() == 0) { //if it's at the base position
+         if(stick.getRawButton(1) && !isClosed && !articulating) // if we're pressing the 'close' button & it's open
+            articulating = true;
+         else if(gamepad.getRawButton(8) && isClosed && !articulating)  //if we're pressing the 'open' button & it's closed
+            articulating = true;
+      }   
+
+      if(articulating && isClosed)
+         grab.set(0.5);
+      else if(articulating)
+         grab.set(-0.5);
+
+      if(grabRot.get() >= grabLimit) {
+         setGrabber(0);
+         grabRot.reset();
+         isClosed = true;
+      }
+      
+      if(grabRot.get() <= -grabLimit) {
+         setGrabber(0);
+         grabRot.reset();
+         isClosed = false;
+      }
+
+   }*/
 
    public void fullBar(double val) {
 	   
    }
-<<<<<<< HEAD
    public static void displayEncoderRates(){
       double[] rates = new double[4];
       rates[0] = FRE.getRate();
@@ -494,18 +517,6 @@ public class Robot extends TimedRobot {
       
       for(int i = 0; i < rates.length; i++){
          SmartDashboard.putNumber("Rate of Encoder " + i, rates[i]);
-=======
-   public static void displayEncoderVals(){
-      double[] vals = new double[4];
-      vals[0] = FRE.get();
-      vals[1] = FLE.get(); 
-      vals[2] = BRE.get(); 
-      vals[3] = BLE.get(); 
-      
-      for(int i = 0; i < vals.length; i
-    		  							++) {
-         SmartDashboard.putNumber("Value of Encoder " + i, vals[i]);
->>>>>>> 73d10642094e3a0bb99b1022c5c54441e4c3f383
       }
  
    }
@@ -521,6 +532,7 @@ public class Robot extends TimedRobot {
 	  SmartDashboard.putString("startPos", startPos.getSelected().toString());
       
    }
+   
    
 }
 
