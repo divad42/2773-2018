@@ -240,7 +240,7 @@ public class Robot extends TimedRobot {
    }
    
      /**
-	 * Changes the requested value (curVel) by the requested value (val) and returns it for a smoother acceleration
+	 * Changes the requested value at a lower rate defined by an input and a global constant for smoother acceleration
     * @param val The value to change the curVel by
     * @param curVel The value being changed by the val parameter
     * @return The changed number
@@ -275,7 +275,7 @@ public class Robot extends TimedRobot {
    }
 
     /**
-	 * Resets all of the encoders used in the program when teleop is initalized.
+	 * Utilizes the resetEncoders() method to reset the encoders when teleop is initalized
     * <p>All other encoders that need to be reset will need to go here.
 	 */
    @Override
@@ -309,7 +309,7 @@ public class Robot extends TimedRobot {
 	}
    
    /**
-   * Resets the FRE, FLE, BRE, and BLE Encoders.
+   * Resets the wheel Encoders.
    */
    public void resetEncoders(){
 	   FRE.reset();
@@ -344,7 +344,7 @@ public class Robot extends TimedRobot {
 // code is commented out when and only when the encoders are not plugged in.
 
    /**
-   *Controls the Four Bar
+   *Controls the Four Bar. changeBarMode determines what bar(s) to change.
    */
    public void fourBar(){
 	   changeBarMode();
@@ -356,7 +356,7 @@ public class Robot extends TimedRobot {
    }
    
    /**
-   *Changes the bar mode on the Lower and Upper bars
+   *Determines whether the upper bar or both bars are controlled
    */
    void changeBarMode() {
 	   if(gamepad.getRawButton(10) && !barModePressed) {
@@ -446,8 +446,6 @@ public class Robot extends TimedRobot {
    
     /**
     * Displays the encoder values in the SmartDashboard.
-    * <p>
-    * Uses 4 encoders to get the encoder values needed.
     * @see Encoder
     */
    public void output() {
