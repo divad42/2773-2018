@@ -391,9 +391,11 @@ public class Robot extends TimedRobot {
         }
       }
       if(autoStep == 4) { 
-         fullBar();
-         autoStep++;
-         resetEncoders();
+         if(lowEncoder.get() < maxBoth)
+            fullBar(1);
+         else
+            autoStep++;
+         drive(0, 0, 0);
       }
       if(autoStep == 5) {
          if (distFromEncoder() < 1.333 * distRate) {
@@ -403,15 +405,21 @@ public class Robot extends TimedRobot {
             drive(0,0,0);
             autoStep++;
             resetEncoders();
+            timer.reset();
+            timer.start();
          }
       }
       if(autoStep == 6) {
          //let go of block
-         grab.set(-0.5);
-         isClosed = false;
-         //reset distance from Encoder
-         autoStep++;
-         resetEncoders();
+         if(timer.get() < 1)
+            grab.set(-0.5);
+         else {
+            isClosed = false;
+            //reset distance from Encoder
+            autoStep++;
+            timer.stop();
+         }
+         drive(0, 0, 0);            
       }
 
    }
