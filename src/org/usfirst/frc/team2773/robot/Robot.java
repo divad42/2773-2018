@@ -2,6 +2,7 @@
 // Updated grabber code and upper bar code and added rudimentary auto and encoder functions and also climber function
 // Halved the rotation speed in the drive method (not the rotation speed of the wench, wheels, 4-bar motors, etc.)
 
+
 package org.usfirst.frc.team2773.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -193,7 +194,6 @@ public class Robot extends TimedRobot {
 		FLE.reset();
 		BRE.reset();
 		BLE.reset();
-		
 	}
 
 	/**
@@ -329,6 +329,96 @@ public class Robot extends TimedRobot {
    public double distFromEncoder() {
       return FLE.get();
    }
+  
+   public void autoLine() {
+      if (distFromEndcoder() < 18.140666 * distRate)//move from alliance wall to the scale
+         drive(0, 1, 0);
+      else{
+         autoStep++;
+         resetEncoders();
+      }
+   }
+   
+   public void driveScale(char pos, side) {
+      if(autoStep == 2) {
+         autoLine();
+      }
+      if(autoStep == 3) {
+        if(pos == 'L') {
+           if(side == 'L') {
+              if (distFromEncoder() < 1.86 * distRate)   
+                  //moving right to align with scale plate
+                  drive(1,0,0);
+              else {
+                  drive(0,0,0);
+                  autoStep++;
+                  resetEncoders();
+              }
+           }
+           else {
+              if (distFromEncoder() < 15 * distRate)
+                  drive(1,0,0);
+              else {
+                  drive(0,0,0);
+                  autoStep++;
+                  resetEncoders();
+              }
+           }
+        }
+        else {
+           if(side == 'L') {
+              if (distFromEncoder() > -15 * distRate) {
+                  drive(-1,0,0);
+              }
+              else {
+                  drive(0,0,0);
+                  autoStep++;
+                  resetEncoders();
+              }
+           }
+           else {
+             if (distFromEncoder() < 1.86 * distRate){  
+                  //move left to align with right scale plate
+                  drive(-1,0,0);
+             }
+             else{
+                  drive(0,0,0);
+                  autoStep++;
+                  resetEncoders();
+             }
+
+           }
+        }
+      }
+      if(autoStep == 4) { 
+         fullBar();
+         autoStep++;
+         resetEncoders();
+      }
+      if(autoStep == 5) {
+         if (distFromEncoder() < 1.333 * distRate) {
+            drive(0,0.5,0);
+         }
+         else {
+            drive(0,0,0);
+            autoStep++;
+            resetEncoders();
+         }
+      }
+      if(autoStep == 6) {
+         //let go of block
+         grab.set(-0.5);
+         isClosed = false;
+         //reset distance from Encoder
+         autoStep++;
+         resetEncoders();
+      }
+
+   }
+     
+   public double speedFromEncoder() {
+      return 4;
+   }
 
    @Override
    public void teleopInit() {
@@ -437,7 +527,6 @@ public class Robot extends TimedRobot {
 		   wench.set(-1);
 	   else
 		   wench.set(0);
-	   
    }
    
 
@@ -553,17 +642,16 @@ public class Robot extends TimedRobot {
 	   BRE.reset();
 	   BLE.reset();
    }
-   
-   public static void displayEncoderVals(){
-      double[] vals = new double[4];
-      vals[0] = FRE.get();
-      vals[1] = FLE.get(); 
-      vals[2] = BRE.get(); 
-      vals[3] = BLE.get(); 
+  
+   public static void displayEncoderRates(){
+      double[] rates = new double[4];
+      rates[0] = FRE.getRate();
+      rates[1] = FLE.getRate(); 
+      rates[2] = BRE.getRate(); 
+      rates[3] = BLE.getRate(); 
       
-      for(int i = 0; i < vals.length; i
-    		  							++) {
-         SmartDashboard.putNumber("Value of Encoder " + i, vals[i]);
+      for(int i = 0; i < rates.length; i++){
+         SmartDashboard.putNumber("Rate of Encoder " + i, rates[i]);
       }
  
    }
