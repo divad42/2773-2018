@@ -308,6 +308,9 @@ public class Robot extends TimedRobot {
    
 	}
    
+   /**
+   * Resets the FRE, FLE, BRE, and BLE Encoders.
+   */
    public void resetEncoders(){
 	   FRE.reset();
 	   FLE.reset();
@@ -315,6 +318,11 @@ public class Robot extends TimedRobot {
 	   BLE.reset();   
    }
 	
+   /**
+   *Operates the Grabbers
+   *<p>
+   *Actions are based off of the Joystick and Gamepad
+   */
    public void grabber() {
 	   if(isClosed)
 	         grab.set(0.25);
@@ -334,6 +342,10 @@ public class Robot extends TimedRobot {
 	      
       
 // code is commented out when and only when the encoders are not plugged in.
+
+   /**
+   *Controls the Four Bar
+   */
    public void fourBar(){
 	   changeBarMode();
 	   
@@ -343,6 +355,9 @@ public class Robot extends TimedRobot {
 		   topBar(gamepad.getTwist());
    }
    
+   /**
+   *Changes the bar mode on the Lower and Upper bars
+   */
    void changeBarMode() {
 	   if(gamepad.getRawButton(10) && !barModePressed) {
 		   barMode = !barMode;
@@ -363,6 +378,10 @@ public class Robot extends TimedRobot {
 	   }
    }
 
+   /**
+   *Operates the upper Bar and changes it by the requested value
+   * @param val Changes the upper bar by the requested value
+   */
    public void topBar(double val) {
 	   if(val < 0 && upEncoder.get() < maxUp)
 		   upperBar.set(0.1);
@@ -372,6 +391,10 @@ public class Robot extends TimedRobot {
 		   upperBar.set(0);
    }
 
+   /**
+   * Operates both the Upper and Lower bar, and changes them by the requested value
+   * @param val Changes both bars by the requested value
+   */
    public void fullBar(double val) {
 	   if(!articulating) {
 		   if(val < 0 && upEncoder.get() < maxUp) {
@@ -389,6 +412,9 @@ public class Robot extends TimedRobot {
 	   }
    }
    
+   /**
+   *Allows the robot to climb the rope
+   */
    public void climb() {
 	   if(stick.getRawButton(2))
 		   wench.set(1);
