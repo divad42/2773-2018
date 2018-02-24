@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 
 
 /**
@@ -81,6 +82,8 @@ public class Robot extends TimedRobot {
    public boolean articulating;
 
    public Spark wench;
+   
+   public Timer timer;
 
 
 	/**
@@ -112,13 +115,13 @@ public class Robot extends TimedRobot {
       grabLimit = 0;
       articulating = false;
 
-      /*//4 Bar parts being declared
+      //4 Bar parts being declared
       lowerBar = new Spark(6);
       upperBar = new Spark(7);
       upEncoder = new Encoder(4, 5);
       upEncoder.reset();
       lowEncoder = new Encoder(6, 7);
-      lowEncoder.reset();*/
+      lowEncoder.reset();
       barMode = false;
       barModePressed = false;
       
@@ -161,6 +164,8 @@ public class Robot extends TimedRobot {
       objectiveChoice.addObject("Baseline", new Integer(2));
       SmartDashboard.putData("Target Objective", objectiveChoice);
       
+      timer = new Timer();
+      
 	}
 
 	/**
@@ -176,9 +181,9 @@ public class Robot extends TimedRobot {
 	 */
 	@Override
 	public void autonomousInit() {
-		startChar = startPos.getSelected();
-		targetChar = targetPos.getSelected();
-		objectInt = objectiveChoice.getSelected().intValue();
+		startChar = startPos.getSelected();     // the starting position
+		objectInt = objectiveChoice.getSelected().intValue();		// whether we want the switch or scale
+		targetChar = DriverStation.getInstance().getGameSpecificMessage().charAt(objectInt);
 		
 		FRE.reset();
 		FLE.reset();
@@ -192,29 +197,35 @@ public class Robot extends TimedRobot {
 	 */
 	@Override
 	public void autonomousPeriodic() {
-		/*double distance;
 		if(autoStep == 0){
-			if(currentTime < autoWait)
+			if(Timer.getMatchTime() < 3)
 				System.out.print("Taking A Snooze");
 			else
 				autoStep++;
 		}
 		if(autoStep == 1) {
-			if(distance <= distGoal)
+			if(Math.abs(distFromEncoders()) <= 7.5 * distRate)
 				moveFromCenter();
 			else 
 				autoStep++;
 		}
 		if(autoStep >= 2) {
 			if(objectInt == 1)
-				driveScale(startChar, DriverStation.getInstance().getGameSpecificMessage().charAt(1));
+				driveScale(startChar, targetChar);
 			else if(objectInt == 0) 
-				driveSwitch(startChar, DriverStation.getInstance().getGameSpecificMessage().charAt(0));
+				driveSwitch(startChar, targetChar);
 			else
 				autoLine();
 				
-		}*/
+		}
       
+	}
+	
+	public void moveFromCenter() {
+		if(targetChar == 'R')
+			drive(0, 1, 0);
+		else
+			drive(0, -1, 0);
 	}
    
    public void drive(double x, double y, double z) {
@@ -250,13 +261,61 @@ public class Robot extends TimedRobot {
          
       if(z > -0.1 && z < 0.1)
          curRot = 0;
-         
-      drive.driveCartesian( curYVel, curXVel, curRot );
-   }
 
-   //there be dragons here
-   public double speedFromEncoder() {
-      return 4;
+      drive.driveCartesian( curYVel, curXVel, curRot );
+      
+      balanceMotors(.95);
+   }
+   
+   /**
+    * balanceMotors     Attempts to corrects any motors going too fast based on encoder values 
+    * @param percentError     how far you will allow the encoder value can stray from average of the 4 encoders (eg 95% means it can be within 5% of average)
+    * @return void
+    */
+   public void balanceMotors(double percentError) {
+	   if(curYVel == 0 ^ curXVel == 0 ^ curRot == 0) {
+		   boolean changed = false; //Controls whether the specific motor has been modified
+		   double[] velocity = new double[4]; //stores absolute value rate of all 4 encoders
+		   Encoder[] encoders = new Encoder[4]; // all 4 encoders
+		    encoders[0] = FRE;
+		   	encoders[1] = FLE;
+		   	encoders[2] = BRE;
+		   	encoders[3] = BLE;
+		   Victor[] victors = new Victor[4]; //all 4 motors
+		    victors[0] = FR;
+		    victors[1] = FL;
+		    victors[2] = BR;
+		    victors[3] = BL;
+		   double[] rateAdjustments = {1,1,1,1}; //base adjustment rate
+		   while(changed == false) {
+			   changed = false;
+			   velocity[0] = Math.abs(FRE.getRate());
+			   velocity[1] = Math.abs(FLE.getRate());
+			   velocity[2] = Math.abs(BRE.getRate());
+			   velocity[3] = Math.abs(BLE.getRate());
+		   
+			   double avg = 0;
+			   for(double d: velocity) //calculates average velocity
+				   avg += d;
+			   avg = avg/velocity.length; 
+		   
+			   for(int x = 0; x < 3; x++) {
+				   //checks if rate is within accepted percent error
+				   if(velocity[x] >= (avg * (1 + (1 - percentError)))) {
+					   rateAdjustments[x] *= percentError; 
+					   changed = true;
+				   }
+			   }
+			   
+			   for(int x = 0; x < victors.length; x++) //performs adjustments
+				   victors[x].set(victors[x].get() * rateAdjustments[x]);
+			   
+			   for(double d: rateAdjustments)
+				   if(d <= .7)
+					   changed = false;
+				   
+		   }
+	   }
    }
    
    public double distFromEncoders() {
@@ -272,7 +331,7 @@ public class Robot extends TimedRobot {
    }
    
    /**
-	 * This function is called periodically during operator control.
+	 *telopPeriodic    This function is called periodically during operator control.
 	 */
 	@Override
 	public void teleopPeriodic() {
