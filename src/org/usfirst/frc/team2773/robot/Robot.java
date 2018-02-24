@@ -386,7 +386,7 @@ public class Robot extends TimedRobot {
 	   
    }
    
-   public void driveSwitch(char switchSide, char startPos) {
+   public void driveSwitch(char switchSide, startPos) {
       if(autoStep == 2) { //moves the robot forwards to the middle of either side of the switch
          if(distFromEncoder <= 12.5 * distRate) //drive it forward regardless of the side
             drive(0, 1, 0);
@@ -459,13 +459,13 @@ public class Robot extends TimedRobot {
          }
       }
       if(autoStep == 7) { //moves the fourbar up
-         //James told me to do this cuz none of us know how to use the fourbar method.
          if(upEncoder.get() <= upMax)
             upperBar(0.5);
          else {
             autoStep++;
             upEncoder.reset();
          }
+         drive(0, 0, 0);
       }
       if(autoStep == 8) { //expels the cube from the grabber.
          int i = 0;
@@ -474,7 +474,9 @@ public class Robot extends TimedRobot {
          else {
             autoStep++;
             grab.set(0);
+            isClosed = false;
          }
+         drive(0, 0, 0);
       }
       if(autoStep == 9) { //moves the fourbar back down.
          if(upEncoder.get() >= upMin)
@@ -483,8 +485,10 @@ public class Robot extends TimedRobot {
             autoStep++;
             upEncoder.reset();
          }
-      }  
-      //we don't know what to do after this step.             
+         drive(0, 0, 0);
+      }
+      if(autoStep > 9)
+         drive(0, 0, 0);       
    }
    
    public void resetEncoders()
