@@ -43,9 +43,15 @@ public class Robot extends TimedRobot {
    static public Encoder BLE;
    static public Encoder BRE;
 
-   //Used to control the lower bar and the upper bar
+   //Lower Bar and Upper Bar Variables
    public Spark lowerBar;
    public Spark upperBar;
+   public static double maxUp;
+   public static double maxDown;
+   public static double minUp;
+   public static double minDown;
+   public boolean barMode;
+   public boolean articulating;
    
    //Drives and Joysticks
    public MecanumDrive drive;
@@ -63,21 +69,11 @@ public class Robot extends TimedRobot {
    public double curRot;
    public double maxSpeed;
    public double accel;
-   
-   //Variables controlling the Minimums and Maximums of the grabber
-   public static double maxUp;
-   public static double maxDown;
-   public static double minUp;
-   public static double minDown;
-   
+
    //Grabber Stuff
    public Spark grab;
    public Encoder grabRot;
-   
-   //Booleans of the Grabber
    public boolean isClosed;
-   public boolean barMode;
-   public boolean articulating;
 
    /**
  * Initalizes all of the needed variables to operate the robot.
@@ -100,6 +96,7 @@ public class Robot extends TimedRobot {
       BR = new Victor(2);
       
       drive = new MecanumDrive(FL, BL, FR, BR);
+      
       //PORT NUMS TEMPORARY!!!
       FLE = new Encoder(2,3);
       FRE = new Encoder(4,5);
@@ -108,7 +105,6 @@ public class Robot extends TimedRobot {
       
       // grabber
       grab = new Spark(4);
-      //grabRot = new Encoder(2, 3);
       isClosed = true;
       grabLimit = 0;
       articulating = false;
@@ -325,7 +321,7 @@ public class Robot extends TimedRobot {
       }
  
    }
-   
+  
    /**
    * Outputs the Encoder Values and the Gamedata
    * <p>
