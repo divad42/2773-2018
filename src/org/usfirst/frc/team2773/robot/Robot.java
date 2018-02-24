@@ -272,32 +272,7 @@ public class Robot extends TimedRobot {
                   autoStep++;
                }
             }
-           if(autoStep == 4)
-           {
-                  //lift 4 bar to a certain point
-                  barMode = true;
-                  while(upEncoder.get() < fullBar(val)) //not upEncoder
-                     upEncoder.get()++;
-                  autoStep++;
-            }
-            if(autoStep == 5)
-            {
-               if (distFromEncoder() < 1.333 * distRate)
-                  drive(0,0.5,0);
-               else{
-                  drive(0,0,0);
-                  autoStep++;
-               }
-            }
-            if(autoStep == 6)
-            {
-                  //let go of block
-                  grab.set(-0.5);
-                  isClosed = false;
-                  //reset distance from Encoder
-                  resetEncoders();
-                  autoStep++;
-           }   
+        }
          else if(side == 'R'){
             if(autoStep == 2)
             {
@@ -312,40 +287,15 @@ public class Robot extends TimedRobot {
                   autoStep++;
                }
             }
-           if(autoStep == 4)
-           {
-                  //lift 4 bar to a certain point
-                  barMode = true;
-                  while(upEncoder.get() < fullBar(val)) //not upEncoder
-                     upEncoder.get()++;
-                  autoStep++;
-            }
-            if(autoStep == 5)
-            {
-               if (distFromEncoder() < 1.333 * distRate)
-                  drive(0,0.5,0);
-               else{
-                  drive(0,0,0);
-                  autoStep++;
-               }
-            }
-            if(autoStep == 6)
-            {
-                  //let go of block
-                  grab.set(-0.5);
-                  isClosed = false;
-                  //reset distance from Encoder
-                  resetEncoders();
-                  autoStep++;
-           }   
-      else if{pos == 'R'){
+         }
+      }
+     else if(pos == 'R'){
          if(side == 'R'){
             if(autoStep == 2)
             {
                autoLine();
             }
-            if (autoStep == 3)
-            {
+            if (autoStep == 3){
                if (distFromEncoder() < 1.86 * distRate)//move left to align with right scale plate
                   drive(-1,0,0);
                else{
@@ -353,50 +303,25 @@ public class Robot extends TimedRobot {
                   autoStep++;
                }
             }
-               }
-            }
-           if(autoStep == 4)
-           {
-                  //lift 4 bar to a certain point
-                  barMode = true;
-                  while(upEncoder.get() < fullBar(val)) //not upEncoder
-                     upEncoder.get()++;
-                  autoStep++;
-            }
-            if(autoStep == 5)
-            {
-               if (distFromEncoder() < 1.333 * distRate)
-                  drive(0,0.5,0);
-               else{
-                  drive(0,0,0);
-                  autoStep++;
-               }
-            }
-            if(autoStep == 6)
-            {
-                  //let go of block
-                  grab.set(-0.5);
-                  isClosed = false;
-                  //reset distance from Encoder
-                  resetEncoders();
-                  autoStep++;
-           }   
-         else if(side == 'L'){
+         }
+        else if(side == 'L'){
             if(autoStep == 2)
             {
                autoLine();
             }
            if (autoStep == 3)
             {
-               if (distFromEncoder() > -15 * distRate)
+               if (distFromEncoder() > -15 * distRate){
                   drive(-1,0,0);
+               }
                else{
                   drive(0,0,0);
                   autoStep++;
                }
             }
                }
-           if(autoStep == 4)
+           }
+         if(autoStep == 4)
            {
                   //lift 4 bar to a certain point
                   barMode = true;
@@ -406,8 +331,9 @@ public class Robot extends TimedRobot {
             }
             if(autoStep == 5)
             {
-               if (distFromEncoder() < 1.333 * distRate)
+               if (distFromEncoder() < 1.333 * distRate){
                   drive(0,0.5,0);
+                  }
                else{
                   drive(0,0,0);
                   autoStep++;
@@ -421,8 +347,8 @@ public class Robot extends TimedRobot {
                   //reset distance from Encoder
                   resetEncoders();
                   autoStep++;
-           }           
-         }
+           }
+   }
    
    public double speedFromEncoder() {
       return 4;
