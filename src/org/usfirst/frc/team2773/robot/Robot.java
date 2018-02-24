@@ -23,12 +23,12 @@ import edu.wpi.first.wpilibj.DriverStation;
  * project.
  */
 public class Robot extends TimedRobot {
-	private static final String kDefaultAuto = "Default";
-	private static final String kCustomAuto = "My Auto";
+	//private static final String kDefaultAuto = "Default";
+	//private static final String kCustomAuto = "My Auto";
 	//private String m_autoSelected;
-	private SendableChooser<String> m_chooser = new SendableChooser<>();
+	//private SendableChooser<String> m_chooser = new SendableChooser<>();
    
-   public final double TILE_DISTANCE_RATE = 1;
+   public final double TILE_DISTANCE_RATE = 330.861363636;  // in degrees per foot
    public final double COMP_DISTANCE_RATE = 1;
    public double distRate; //= TILE or COMP rate 
    
@@ -75,6 +75,8 @@ public class Robot extends TimedRobot {
    public boolean isClosed;
    public boolean barMode;
    public boolean articulating;
+   
+   public SendableChooser<Character> startPos;
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -83,11 +85,11 @@ public class Robot extends TimedRobot {
 	@Override
 	public void robotInit() {
    
-      distRate = COMP_DISTANCE_RATE; 
+      distRate = TILE_DISTANCE_RATE; 
      
-		m_chooser.addDefault("Default Auto", kDefaultAuto);
-		m_chooser.addObject("My Auto", kCustomAuto);
-		SmartDashboard.putData("Auto choices", m_chooser);
+		//m_chooser.addDefault("Default Auto", kDefaultAuto);
+		//m_chooser.addObject("My Auto", kCustomAuto);
+		//SmartDashboard.putData("Auto choices", m_chooser);
       
       // wheels
       FL = new Victor(3);
@@ -138,6 +140,13 @@ public class Robot extends TimedRobot {
       // this is necessary to print to the console
       printer = new PrintCommand("abcderfjkdjs");
       printer.start();
+      
+      // the radio buttons for selecting our starting position
+      startPos = new SendableChooser<>();
+      startPos.addDefault("Center", new Character('C'));
+      startPos.addObject("Left", new Character('L'));
+      startPos.addObject("Right", new Character('R'));
+      SmartDashboard.putData("Starting Positions", startPos);
 	}
 
 	/**
@@ -228,6 +237,136 @@ public class Robot extends TimedRobot {
       drive.driveCartesian( curYVel, curXVel, curRot );
    }
    
+   public void autoLine() {
+      if (distFromEndcoder() < 18.140666 * distRate)
+         drive(0, 1, 0);
+   }
+   
+   public void driveScale(char pos, side) {
+      if(pos == 'L'){
+         if(side == 'L'){
+            if(autoStep == 2)
+            {
+               if (distFromEncoder() < 1.86 * distRate)
+                  drive(1,0,0);
+               else{
+                  drive(0,0,0);
+                  autoStep++;
+                  //let go of block
+                  //reset distance from Encoder
+                  grab.set(-0.5);
+                  hold = false;
+                  Encoder.reset();
+               }
+            }
+            //lift 4 bar (increment autoStep to 4)
+            
+            if(autoStep == 4)
+            {
+               if (distFromEncoder() < 1.333 * distRate)
+                  drive(0,0.5,0);
+               else{
+                  drive(0,0,0);
+                  autoStep++;
+                  //let go of block
+                  //reset distance from Encoder
+                  grab.set(-0.5);
+                  hold = false;
+                  Encoder.reset();
+         }
+         else if(side == 'R'){
+            if(autoStep == 2)
+            {
+               if (distFromEncoder() > -15 * distRate)
+                  drive(1,0,0);
+               else{
+                  drive(0,0,0);
+                  autoStep++;
+                  //let go of block
+                  //reset distance from Encoder
+                  grab.set(-0.5);
+                  hold = false;
+                  Encoder.reset();
+               }
+            }
+            //lift 4 bar (increment autoStep to 3)
+            
+            if(autoStep == 4)
+            {
+               if (distFromEncoder() < 1.333 * distRate)
+                  drive(0,0.5,0);
+               else{
+                  drive(0,0,0);
+                  autoStep++;
+                  //let go of block
+                  //reset distance from Encoder
+                  grab.set(-0.5);
+                  hold = false;
+                  Encoder.reset();
+                  
+         }
+      else if{pos == 'R'){
+         if(side == 'R'){
+            if (autoStep == 2)
+            {
+               if (distFromEncoder() < 1.86 * distRate)
+                  drive(-1,0,0);
+               else{
+                  drive(0,0,0);
+                  autoStep++;
+                  //let go of block
+                  //reset distance from Encoder
+                  grab.set(-0.5);
+                  hold = false;
+                  Encoder.reset();
+               }
+            }
+            //lift 4 bar (increment autoStep to 3)
+            
+            if(autoStep == 4)
+            if (distFromEncoder() < 1.333 * distRate)
+               drive(0,0.5,0);
+            else{
+                  drive(0,0,0);
+                  autoStep++;
+                  //let go of block
+                  //reset distance from Encoder
+                  grab.set(-0.5);
+                  hold = false;
+                  Encoder.reset();
+               }
+            }         
+         else if(side == 'L'){
+           if (autoStep == 2)
+            {
+               if (distFromEncoder() > -15 * distRate)
+                  drive(-1,0,0);
+               else{
+                  drive(0,0,0);
+                  autoStep++;
+                  //let go of block
+                  //reset distance from Encoder
+                  grab.set(-0.5);
+                  hold = false;
+                  Encoder.reset();
+               }
+            }
+            //lift 4 bar (increment autoStep to 3)
+            
+            if(autoStep == 4)
+            if (distFromEncoder() < 1.333 * distRate)
+               drive(0,0.5,0);
+            else{
+                  drive(0,0,0);
+                  autoStep++;
+                  //let go of block
+                  //reset distance from Encoder
+                  grab.set(-0.5);
+                  hold = false;
+                  Encoder.reset();
+               }
+            }            
+         }
    
    public double speedFromEncoder() {
       return 4;
@@ -363,6 +502,17 @@ public class Robot extends TimedRobot {
    public void fullBar(double val) {
 	   
    }
+<<<<<<< HEAD
+   public static void displayEncoderRates(){
+      double[] rates = new double[4];
+      rates[0] = FRE.getRate();
+      rates[1] = FLE.getRate(); 
+      rates[2] = BRE.getRate(); 
+      rates[3] = BLE.getRate(); 
+      
+      for(int i = 0; i < rates.length; i++){
+         SmartDashboard.putNumber("Rate of Encoder " + i, rates[i]);
+=======
    public static void displayEncoderVals(){
       double[] vals = new double[4];
       vals[0] = FRE.get();
@@ -373,17 +523,20 @@ public class Robot extends TimedRobot {
       for(int i = 0; i < vals.length; i
     		  							++) {
          SmartDashboard.putNumber("Value of Encoder " + i, vals[i]);
+>>>>>>> 73d10642094e3a0bb99b1022c5c54441e4c3f383
       }
  
    }
    public void output() {
       displayEncoderVals();
-	   DriverStation ds= DriverStation.getInstance();
+	  DriverStation ds= DriverStation.getInstance();
       // display the values from the encoder to the SmartDashboard
-	   SmartDashboard.putString("GameData", ds.getGameSpecificMessage());
+	  SmartDashboard.putString("GameData", ds.getGameSpecificMessage());
 	  //SmartDashboard.putNumber("distance", testEncoder.getDistance());
-	 //SmartDashboard.putBoolean("direction", testEncoder.getDirection());
-	//SmartDashboard.putNumber("rate", testEncoder.getRate());
+	  //SmartDashboard.putBoolean("direction", testEncoder.getDirection());
+	  //SmartDashboard.putNumber("rate", testEncoder.getRate());
+	   
+	  SmartDashboard.putString("startPos", startPos.getSelected().toString());
       
    }
    
