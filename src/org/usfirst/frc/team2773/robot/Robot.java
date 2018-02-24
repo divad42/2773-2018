@@ -262,7 +262,6 @@ public class Robot extends TimedRobot {
             if(autoStep == 2)
             {
                autoLine();
-               autoStep++;
             }
             if(autoStep == 3)
             {
@@ -303,7 +302,6 @@ public class Robot extends TimedRobot {
             if(autoStep == 2)
             {
                autoLine();
-               autoStep++;
             }
             if(autoStep == 3)
             {
@@ -345,7 +343,6 @@ public class Robot extends TimedRobot {
             if(autoStep == 2)
             {
                autoLine();
-               autoStep++;
             }
             if (autoStep == 3)
             {
@@ -388,7 +385,6 @@ public class Robot extends TimedRobot {
             if(autoStep == 2)
             {
                autoLine();
-               autoStep++;
             }
            if (autoStep == 3)
             {
