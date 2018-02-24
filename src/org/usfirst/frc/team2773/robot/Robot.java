@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 
 
 /**
@@ -23,11 +24,13 @@ import edu.wpi.first.wpilibj.DriverStation;
  * project.
  */
 public class Robot extends TimedRobot {   
-   public final double TILE_DISTANCE_RATE = 330.861363636;  // in degrees per foot
+   public final double TILE_DISTANCE_RATE_COMPBOT = 330.861363636;  // in degrees per foot
    public final double COMP_DISTANCE_RATE = 1;
+   public final double TILE_ROTATION_RATE_PRACTICEBOT = 1;
    public static double distRate; //= TILE or COMP rate 
+   public static double degRate;
    
-   public SendableChooser<Character> startPos;
+   public SendableChooser<Character> startLoc;
    public SendableChooser<Character> targetPos;
    public SendableChooser<Integer> objectiveChoice;
 
@@ -95,6 +98,22 @@ public class Robot extends TimedRobot {
 	public void robotInit() {
    
       // wheels
+   public Spark wench;
+   
+   public Timer timer;
+
+
+	/**
+	 * This function is run when the robot is first started up and should be
+	 * used for any initialization code.
+	 */
+	@Override
+	public void robotInit() {
+   
+      distRate = TILE_DISTANCE_RATE_COMPBOT; 
+      degRate = TILE_ROTATION_RATE_PRACTICEBOT;
+     	
+      //Wheel and Drive Objects
       FL = new Victor(3);
       FR = new Victor(0);
       BL = new Victor(1);
@@ -145,13 +164,20 @@ public class Robot extends TimedRobot {
       //Controller objects
       gamepad = new Joystick(0);
       stick = new Joystick(1);
+
+      //Drive Variables 
+      curXVel = 0.0;
+      curYVel = 0.0;
+      curRot = 0.0;
+      accel = 0.01;
+
             
       // the radio buttons for selecting our starting position
-      startPos = new SendableChooser<>();
-      startPos.addDefault("Center", new Character('C'));
-      startPos.addObject("Left", new Character('L'));
-      startPos.addObject("Right", new Character('R'));
-      SmartDashboard.putData("Starting Positions", startPos);
+      startLoc = new SendableChooser<>();
+      startLoc.addDefault("Center", new Character('C'));
+      startLoc.addObject("Left", new Character('L'));
+      startLoc.addObject("Right", new Character('R'));
+      SmartDashboard.putData("Starting Positions", startLoc);
       
       //Target Position Radio Buttons in SmartDashboard NOT HOW WE WANT TO DECIDE THIS
       targetPos = new SendableChooser<>();
@@ -165,6 +191,8 @@ public class Robot extends TimedRobot {
       objectiveChoice.addObject("Scale", new Integer(1));
       objectiveChoice.addObject("Baseline", new Integer(2));
       SmartDashboard.putData("Target Objective", objectiveChoice);
+
+      timer = new Timer();
 
 	}
 
@@ -188,6 +216,9 @@ public class Robot extends TimedRobot {
 		startChar = startPos.getSelected();
 		targetChar = targetPos.getSelected();
 		objectInt = objectiveChoice.getSelected().intValue();
+		startChar = startLoc.getSelected();     // the starting position
+		objectInt = objectiveChoice.getSelected().intValue();		// whether we want the switch or scale
+		targetChar = DriverStation.getInstance().getGameSpecificMessage().charAt(objectInt);
 		
       resetEncoders();
 
@@ -198,29 +229,35 @@ public class Robot extends TimedRobot {
 	 */
 	@Override
 	public void autonomousPeriodic() {
-
 		if(autoStep == 0){
-			if(currentTime < autoWait)
+			if(Timer.getMatchTime() < 3)
 				System.out.print("Taking A Snooze");
 			else
 				autoStep++;
 		}
 		if(autoStep == 1) {
-			if(distance <= distGoal)
+			if(Math.abs(distFromEncoders()) <= 7.5 * distRate)
 				moveFromCenter();
 			else 
 				autoStep++;
 		}
 		if(autoStep >= 2) {
 			if(objectInt == 1)
-				driveScale(startChar, DriverStation.getInstance().getGameSpecificMessage().charAt(1));
+				driveScale(startChar, targetChar);
 			else if(objectInt == 0) 
-				driveSwitch(startChar, DriverStation.getInstance().getGameSpecificMessage().charAt(0));
+				driveSwitch(startChar, targetChar);
 			else
 				autoLine();
 				
 		}
       
+	}
+	
+	public void moveFromCenter() {
+		if(targetChar == 'R')
+			drive(0, 1, 0);
+		else
+			drive(0, -1, 0);
 	}
    
    /**
@@ -231,14 +268,27 @@ public class Robot extends TimedRobot {
  * @param z Value to rotate the robot by degrees. The robot will turn clockwise when the number is positive, and counterclockwise when the number is negative
  */
    public void drive(double x, double y, double z) {
-         
+
       curXVel = changeSpeed(x, curXVel);
       curYVel = changeSpeed(y, curYVel);
       curRot = changeSpeed(z, curRot);
+
+      // if the joystick is in the resting position, setting the motor to zero
+      // should cause the robot to drift.   
+      if(x > -0.1 && x < 0.1)
+         curXVel = 0;
          
+      if(y > -0.1 && y < 0.1)
+         curYVel = 0;
+         
+      if(z > -0.1 && z < 0.1)
+         curRot = 0;
+
       drive.driveCartesian( curYVel, curXVel, curRot );
+      
+      balanceMotors(.95);
    }
-   
+
      /**
 	 * Changes the requested value at a lower rate defined by an input and a global constant for smoother acceleration
     * @param val The value to change the curVel by
@@ -263,6 +313,57 @@ public class Robot extends TimedRobot {
 	 */
    public double speedFromEncoder() {
       return 4;
+
+   /**
+    * balanceMotors     Attempts to corrects any motors going too fast based on encoder values 
+    * @param percentError     how far you will allow the encoder value can stray from average of the 4 encoders (eg 95% means it can be within 5% of average)
+    * @return void
+    */
+   public void balanceMotors(double percentError) {
+	   if(curYVel == 0 ^ curXVel == 0 ^ curRot == 0) {
+		   boolean changed = false; //Controls whether the specific motor has been modified
+		   double[] velocity = new double[4]; //stores absolute value rate of all 4 encoders
+		   Encoder[] encoders = new Encoder[4]; // all 4 encoders
+		    encoders[0] = FRE;
+		   	encoders[1] = FLE;
+		   	encoders[2] = BRE;
+		   	encoders[3] = BLE;
+		   Victor[] victors = new Victor[4]; //all 4 motors
+		    victors[0] = FR;
+		    victors[1] = FL;
+		    victors[2] = BR;
+		    victors[3] = BL;
+		   double[] rateAdjustments = {1,1,1,1}; //base adjustment rate
+		   while(changed == false) {
+			   changed = false;
+			   velocity[0] = Math.abs(FRE.getRate());
+			   velocity[1] = Math.abs(FLE.getRate());
+			   velocity[2] = Math.abs(BRE.getRate());
+			   velocity[3] = Math.abs(BLE.getRate());
+		   
+			   double avg = 0;
+			   for(double d: velocity) //calculates average velocity
+				   avg += d;
+			   avg = avg/velocity.length; 
+		   
+			   for(int x = 0; x < 3; x++) {
+				   //checks if rate is within accepted percent error
+				   if(velocity[x] >= (avg * (1 + (1 - percentError)))) {
+					   rateAdjustments[x] *= percentError; 
+					   changed = true;
+				   }
+			   }
+			   
+			   for(int x = 0; x < victors.length; x++) //performs adjustments
+				   victors[x].set(victors[x].get() * rateAdjustments[x]);
+			   
+			   for(double d: rateAdjustments)
+				   if(d <= .7)
+					   changed = false;
+				   
+		   }
+	   }
+
    }
 
 
@@ -272,6 +373,10 @@ public class Robot extends TimedRobot {
 	 */
    public double distFromEncoders() {
 	   return FLE.getDistance();
+   }
+   
+   public double distFromEncoder() {
+      return FLE.get();
    }
 
     /**
@@ -288,6 +393,7 @@ public class Robot extends TimedRobot {
     * <p>When used, updates the SmartDashboard via the output() method
     * <p>Drives using the drive() method
 	 * This function is called periodically during operator control.
+	 *telopPeriodic    This function is called periodically during operator control.
 	 */
 	@Override
 	public void teleopPeriodic() {
@@ -347,6 +453,7 @@ public class Robot extends TimedRobot {
    *Controls the Four Bar. changeBarMode determines what bar(s) to change.
    */
    public void fourBar(){
+
 	   changeBarMode();
 	   
 	   if (barMode && !articulating)
@@ -382,6 +489,7 @@ public class Robot extends TimedRobot {
    *Operates the upper Bar and changes it by the requested value
    * @param val Changes the upper bar by the requested value
    */
+
    public void topBar(double val) {
 	   if(val < 0 && upEncoder.get() < maxUp)
 		   upperBar.set(0.1);
@@ -424,12 +532,126 @@ public class Robot extends TimedRobot {
 		   wench.set(0);
 	   
    }
-   
+
       /**
    * Outputs the Encoder Values and the Gamedata
    * <p>
    * Uses the displayEncoderVals() method
    */
+
+   public void driveSwitch(char startPos, char switchSide) {
+      if(autoStep == 2) { //moves the robot forwards to the middle of either side of the switch
+         if(distFromEncoders() <= 12.5 * distRate) //drive it forward regardless of the side
+            drive(0, 1, 0);
+         else { //increments autoStep
+            autoStep++;
+            resetEncoders();
+         }
+      }
+      if(autoStep == 3) { //moves the robot past the switch if necessary.
+         if(startPos == switchSide) 
+            autoStep++;
+         else {
+            if(distFromEncoders() <= 7 * distRate)
+               drive(1, 0, 0);
+            else {
+               autoStep++;
+               resetEncoders();
+            }
+         }
+      }
+      if(autoStep == 4) { //moving across the switch horizontally
+         if(startPos == switchSide)
+            autoStep++;
+         else {
+            if(switchSide == 'R') {
+               if(distFromEncoders() >= -19 * distRate)
+                  drive(0, -1, 0);
+               else {
+                  autoStep++;
+                  resetEncoders();
+               }
+            }
+            else {
+               if(distFromEncoders() <= 19 * distRate)
+                  drive(0, 1, 0);
+               else {
+                  autoStep++;
+                  resetEncoders();
+               }
+            }
+         }         
+      }
+      if(autoStep == 5) {  //moves backwards to the desired location in the middle of each side.
+         if(startPos == switchSide)  //increments autoStep because it is in position to rotate.
+            autoStep++;
+         else {
+            if(distFromEncoders() >= 7 * distRate)
+               drive(-1, 0, 0);
+            else {
+               autoStep++;
+               resetEncoders();
+            }
+         }
+      }    
+      if(autoStep == 6) { //rotates the robot 90 degrees in the appropriate direciton
+         if(switchSide == 'L') 
+            if(distFromEncoders() <= 90 * degRate)
+               drive(0, 0, 1);
+            else {
+               autoStep++;
+               resetEncoders();
+            }
+         else {
+            if(distFromEncoders() >= -90 * degRate)
+               drive(0, 0, -1);   
+            else {
+               autoStep++;
+               resetEncoders();
+            }
+         }
+      }
+      if(autoStep == 7) { //moves the fourbar up
+         if(upEncoder.get() <= maxUp)
+            topBar(0.5);
+         else {
+            autoStep++;
+            upEncoder.reset();
+         }
+         drive(0, 0, 0);
+      }
+      if(autoStep == 8) { //expels the cube from the grabber.
+         int i = 0;
+         if(i <= 2000)
+            grab.set(-0.5);//do this for a few seconds
+         else {
+            autoStep++;
+            grab.set(0);
+            isClosed = false;
+         }
+         drive(0, 0, 0);
+      }
+      if(autoStep == 9) { //moves the fourbar back down.
+         if(upEncoder.get() >= minUp)
+            topBar(-0.5);
+         else {
+            autoStep++;
+            upEncoder.reset();
+         }
+         drive(0, 0, 0);
+      }
+      if(autoStep > 9)
+         drive(0, 0, 0);       
+   }
+   
+   public void resetEncoders()
+   {
+   	FRE.reset();
+	   FLE.reset();
+	   BRE.reset();
+	   BLE.reset();
+   }
+
    public static void displayEncoderVals(){
       double[] vals = new double[4];
       vals[0] = FRE.get();
@@ -453,7 +675,7 @@ public class Robot extends TimedRobot {
 	  displayEncoderVals();
 
 	  SmartDashboard.putString("GameData", DriverStation.getInstance().getGameSpecificMessage());	   
-	  SmartDashboard.putString("startPos", startPos.getSelected().toString());
+	  SmartDashboard.putString("startPos", startLoc.getSelected().toString());
       
    }
 
