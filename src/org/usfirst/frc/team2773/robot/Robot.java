@@ -248,7 +248,7 @@ public class Robot extends TimedRobot {
    }
    
    public void autoLine() {
-      if (distFromEndcoder() < 18.140666 * distRate)
+      if (distFromEndcoder() < 18.140666 * distRate)//move from alliance wall to the scale
          drive(0, 1, 0);
    }
    
@@ -257,100 +257,171 @@ public class Robot extends TimedRobot {
          if(side == 'L'){
             if(autoStep == 2)
             {
-               if (distFromEncoder() < 1.86 * distRate)
+               autoLine();
+               autoStep++;
+            }
+            if(autoStep == 3)
+            {
+               if (distFromEncoder() < 1.86 * distRate)//moving right to align with scale plate
                   drive(1,0,0);
                else{
                   drive(0,0,0);
                   autoStep++;
-                  //let go of block
-                  //reset distance from Encoder
                }
             }
-            //lift 4 bar (increment autoStep to 4)
-            
-            if(autoStep == 4)
+           if(autoStep == 4)
+           {
+                  //lift 4 bar to a certain point
+                  barMode = true;
+                  while(upEncoder.get() < fullBar(val)) //not upEncoder
+                     upEncoder.get()++;
+                  autoStep++;
+            }
+            if(autoStep == 5)
             {
                if (distFromEncoder() < 1.333 * distRate)
                   drive(0,0.5,0);
                else{
                   drive(0,0,0);
                   autoStep++;
+               }
+            }
+            if(autoStep == 6)
+            {
                   //let go of block
+                  grab.set(-0.5);
+                  isClosed = false;
                   //reset distance from Encoder
-         }
+                  resetEncoders();
+                  autoStep++;
+           }   
          else if(side == 'R'){
             if(autoStep == 2)
             {
-               if (distFromEncoder() > -15 * distRate)
+               autoLine();
+               autoStep++;
+            }
+            if(autoStep == 3)
+            {
+               if (distFromEncoder() < 15 * distRate)
                   drive(1,0,0);
                else{
                   drive(0,0,0);
                   autoStep++;
-                  //let go of block
-                  //reset distance from Encoder
                }
             }
-            //lift 4 bar (increment autoStep to 3)
-            
-            if(autoStep == 4)
+           if(autoStep == 4)
+           {
+                  //lift 4 bar to a certain point
+                  barMode = true;
+                  while(upEncoder.get() < fullBar(val)) //not upEncoder
+                     upEncoder.get()++;
+                  autoStep++;
+            }
+            if(autoStep == 5)
             {
                if (distFromEncoder() < 1.333 * distRate)
                   drive(0,0.5,0);
                else{
                   drive(0,0,0);
                   autoStep++;
+               }
+            }
+            if(autoStep == 6)
+            {
                   //let go of block
+                  grab.set(-0.5);
+                  isClosed = false;
                   //reset distance from Encoder
-         }
+                  resetEncoders();
+                  autoStep++;
+           }   
       else if{pos == 'R'){
          if(side == 'R'){
-            if (autoStep == 2)
+            if(autoStep == 2)
             {
-               if (distFromEncoder() < 1.86 * distRate)
+               autoLine();
+               autoStep++;
+            }
+            if (autoStep == 3)
+            {
+               if (distFromEncoder() < 1.86 * distRate)//move left to align with right scale plate
                   drive(-1,0,0);
                else{
                   drive(0,0,0);
                   autoStep++;
-                  //let go of block
-                  //reset distance from Encoder
                }
             }
-            //lift 4 bar (increment autoStep to 3)
-            
-            if(autoStep == 4)
-            if (distFromEncoder() < 1.333 * distRate)
-               drive(0,0.5,0);
-            else{
+               }
+            }
+           if(autoStep == 4)
+           {
+                  //lift 4 bar to a certain point
+                  barMode = true;
+                  while(upEncoder.get() < fullBar(val)) //not upEncoder
+                     upEncoder.get()++;
+                  autoStep++;
+            }
+            if(autoStep == 5)
+            {
+               if (distFromEncoder() < 1.333 * distRate)
+                  drive(0,0.5,0);
+               else{
                   drive(0,0,0);
                   autoStep++;
-                  //let go of block
-                  //reset distance from Encoder
                }
-            }         
+            }
+            if(autoStep == 6)
+            {
+                  //let go of block
+                  grab.set(-0.5);
+                  isClosed = false;
+                  //reset distance from Encoder
+                  resetEncoders();
+                  autoStep++;
+           }   
          else if(side == 'L'){
-           if (autoStep == 2)
+            if(autoStep == 2)
+            {
+               autoLine();
+               autoStep++;
+            }
+           if (autoStep == 3)
             {
                if (distFromEncoder() > -15 * distRate)
                   drive(-1,0,0);
                else{
                   drive(0,0,0);
                   autoStep++;
-                  //let go of block
-                  //reset distance from Encoder
                }
             }
-            //lift 4 bar (increment autoStep to 3)
-            
-            if(autoStep == 4)
-            if (distFromEncoder() < 1.333 * distRate)
-               drive(0,0.5,0);
-            else{
+               }
+           if(autoStep == 4)
+           {
+                  //lift 4 bar to a certain point
+                  barMode = true;
+                  while(upEncoder.get() < fullBar(val)) //not upEncoder
+                     upEncoder.get()++;
+                  autoStep++;
+            }
+            if(autoStep == 5)
+            {
+               if (distFromEncoder() < 1.333 * distRate)
+                  drive(0,0.5,0);
+               else{
                   drive(0,0,0);
                   autoStep++;
-                  //let go of block
-                  //reset distance from Encoder
                }
-            }            
+            }
+            if(autoStep == 6)
+            {
+                  //let go of block
+                  grab.set(-0.5);
+                  isClosed = false;
+                  //reset distance from Encoder
+                  resetEncoders();
+                  autoStep++;
+           }           
          }
    
    public double speedFromEncoder() {
