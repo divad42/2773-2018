@@ -250,6 +250,10 @@ public class Robot extends TimedRobot {
    public void autoLine() {
       if (distFromEndcoder() < 18.140666 * distRate)//move from alliance wall to the scale
          drive(0, 1, 0);
+      else{
+         autoStep++;
+         resetEncoders();
+      }
    }
    
    public void driveScale(char pos, side) {
