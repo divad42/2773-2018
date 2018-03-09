@@ -1,6 +1,9 @@
-// Version 1.0.0
-// Updated grabber code and upper bar code and added rudimentary auto and encoder functions and also climber function
-// Halved the rotation speed in the drive method (not the rotation speed of the wench, wheels, 4-bar motors, etc.)
+// Version 1.0.1
+//Commented out fourbar encoders
+//Replaced fourbar encoders with integer values to update every time the fourbar speed is set
+//Added limit switch code to reset fake fourbar encoders
+//Updated grabber code to fix new model, as in removed "isClosed"
+//removed rotational acceleration
 
 package org.usfirst.frc.team2773.robot;
 
@@ -12,8 +15,12 @@ import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.DigitalOutput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.CameraServer;
+
+
 
 
 /**
@@ -52,15 +59,18 @@ public class Robot extends TimedRobot {
 
    public Spark upperBar;
    public Spark lowerBar;
-   public Encoder lowEncoder;
-   public Encoder upEncoder;
+   public Spark lowerBox;
    
+   public DigitalOutput lowestBar;
+   public boolean goDown;
+   
+   public int fakeEncoderUp;
+   public int fakeEncoderDown;
    
    public Joystick gamepad;
    public Joystick stick;
          
    public double distance;
-   public double grabLimit;
    public int autoStep;
    
    public double curXVel;
@@ -68,17 +78,15 @@ public class Robot extends TimedRobot {
    public double curRot;
    public double accel;
 
-   
    public double maxSpeed;
-   public static double maxUp;
+   public static double maxBoth;
    public static double maxDown;
-   public static double minUp;
+   public static double minBoth;
    public static double minDown;
    
-   public Spark grab;
-   public Encoder grabRot;
+   public Spark grabL;
+   public Spark grabR;
    
-   public boolean isClosed;
    public boolean barMode;
    public boolean barModePressed;
    public boolean articulating;
@@ -86,6 +94,8 @@ public class Robot extends TimedRobot {
    public Spark wench;
    
    public Timer timer;
+   
+   public CameraServer cameras;
 
 
 	/**
@@ -111,31 +121,35 @@ public class Robot extends TimedRobot {
       BLE = new Encoder(6,7);
       BRE = new Encoder(0,1);
       
+      BLE.setReverseDirection(true);
+      FLE.setReverseDirection(true);
+      
       //Grabber and Related Data
-      grab = new Spark(4);
-      grab.setInverted(true);
-      isClosed = true;
-      grabLimit = 0;
-      articulating = false;
+      grabR = new Spark(7);
+      grabL = new Spark(5);
+      //grabL.setInverted(true);
 
       //4 Bar parts being declared
       lowerBar = new Spark(6);
-      upperBar = new Spark(7);
-      upEncoder = new Encoder(4, 5);
-      upEncoder.reset();
-      lowEncoder = new Encoder(6, 7);
-      lowEncoder.reset();
+      lowerBar.setInverted(true);
+      
+      upperBar = new Spark(8);
+      lowestBar = new DigitalOutput(8);
+      goDown = false;
+      
+      fakeEncoderUp = 0;
+      fakeEncoderDown = 0;
       barMode = false;
       barModePressed = false;
       
       //Climber related data
-      wench = new Spark(6);
+      wench = new Spark(4);
       
       //Constraints 
-      maxUp = 360;
-      minUp = -360;
-      maxDown = 360;
-      minDown = -360;
+      maxBoth = 10000;
+      minBoth = -10000;
+      maxDown = 10000;
+      minDown = -10000;
       
       //Controller objects
       gamepad = new Joystick(0);
@@ -145,9 +159,8 @@ public class Robot extends TimedRobot {
       curXVel = 0.0;
       curYVel = 0.0;
       curRot = 0.0;
-      accel = 0.01;
+      accel = 0.03;
       
-            
       // the radio buttons for selecting our starting position
       startLoc = new SendableChooser<>();
       startLoc.addDefault("Center", new Character('C'));
@@ -155,11 +168,11 @@ public class Robot extends TimedRobot {
       startLoc.addObject("Right", new Character('R'));
       SmartDashboard.putData("Starting Positions", startLoc);
       
-      //Target Position Radio Buttons in SmartDashboard
+      /*THERE SHOULD BE NO Target Position Radio Buttons in SmartDashboard
       targetPos = new SendableChooser<>();
       targetPos.addDefault("Left", new Character('L'));
       targetPos.addObject("Right", new Character('R'));
-      SmartDashboard.putData("Target Position", targetPos);
+      SmartDashboard.putData("Target Position", targetPos);*/
       
       //Selecting Objective with RadioButtons in SmartDashboard 
       objectiveChoice = new SendableChooser<>();
@@ -169,6 +182,12 @@ public class Robot extends TimedRobot {
       SmartDashboard.putData("Target Objective", objectiveChoice);
       
       timer = new Timer();
+      
+      // Declares the cameras and sets their resolution to their respective maxima
+      // "startAutomaticCapture" creates a "UsbCamera" object, on which we can call the "setResolution" method.
+      cameras = CameraServer.getInstance();
+      cameras.startAutomaticCapture(0).setResolution(1280, 720);
+      //cameras.startAutomaticCapture(1).setResolution(1280, 720);
       
 	}
 
@@ -193,7 +212,6 @@ public class Robot extends TimedRobot {
 		FLE.reset();
 		BRE.reset();
 		BLE.reset();
-		
 	}
 
 	/**
@@ -203,15 +221,17 @@ public class Robot extends TimedRobot {
 	public void autonomousPeriodic() {
 		if(autoStep == 0){
 			if(Timer.getMatchTime() < 3)
-				System.out.print("Taking A Snooze");
+				System.out.print("tAkInG a snOoZE");
 			else
 				autoStep++;
 		}
 		if(autoStep == 1) {
-			if(Math.abs(distFromEncoders()) <= 7.5 * distRate)
+			if(Math.abs(distFromEncoders()) <= 7.5 * distRate && startChar == 'C')
 				moveFromCenter();
-			else 
+			else {
 				autoStep++;
+				startChar = targetChar;
+			}
 		}
 		if(autoStep >= 2) {
 			if(objectInt == 1)
@@ -231,42 +251,40 @@ public class Robot extends TimedRobot {
 		else
 			drive(0, -1, 0);
 	}
+	
    
    public void drive(double x, double y, double z) {
       
       // the robot smoothly accelerates at a rate determined by the magnitude of the
       // joystick's manipulation
       
-      if(x > 0 && curXVel <= maxSpeed)
-         curXVel += accel * x;
+      if(x > 0.3 && curXVel <= maxSpeed)
+         curXVel += accel * x * 0.5;
       
-      if(x < 0 && curXVel >= (-1 * maxSpeed))
-         curXVel += accel * x;
+      if(x < -0.3 && curXVel >= (-1 * maxSpeed))
+         curXVel += accel * x * 0.5;
          
-      if(y > 0 && curYVel <= maxSpeed)
-         curYVel += accel * y;
+      if(y > 0.3 && curYVel <= maxSpeed)
+         curYVel += accel * y * 0.5;
       
-      if(y < 0 && curYVel >= (-1 * maxSpeed))
-         curYVel += accel * y;
-         
-      if(z > 0 && curRot <= maxSpeed)
-         curRot += accel * z * 0.5;
-     
-      if(z < 0 && curRot >= (-1 * maxSpeed))
-         curRot += accel * z *0.5;
-         
+      if(y < -0.3 && curYVel >= (-1 * maxSpeed))
+         curYVel += accel * y * 0.5;
+      
+      if(z > 0.3 || z < -0.3)
+    	  curRot = z; 
+      
       // if the joystick is in the resting position, setting the motor to zero
       // should cause the robot to drift.   
-      if(x > -0.1 && x < 0.1)
+      if(x > -0.3 && x < 0.1)
          curXVel = 0;
          
       if(y > -0.1 && y < 0.1)
          curYVel = 0;
-         
+      
       if(z > -0.1 && z < 0.1)
          curRot = 0;
-
-      drive.driveCartesian( curYVel, curXVel, curRot );
+      
+      drive.driveCartesian( curYVel, curXVel, curRot * 0.3);
       
       balanceMotors(.95);
    }
@@ -322,6 +340,8 @@ public class Robot extends TimedRobot {
 	   }
    }
    
+   
+   // I did not decide this
    public double distFromEncoders() {
 	   return FLE.getDistance();
    }
@@ -329,6 +349,7 @@ public class Robot extends TimedRobot {
    public double distFromEncoder() {
       return FLE.get();
    }
+   
 
    @Override
    public void teleopInit() {
@@ -344,100 +365,133 @@ public class Robot extends TimedRobot {
 	@Override
 	public void teleopPeriodic() {
 		
-      maxSpeed = (-stick.getThrottle() + 1) / 2;
+      maxSpeed = (-stick.getThrottle() + 1) / 4;
       
       drive(-stick.getY(), stick.getX(), stick.getTwist());
       fourBar();
       grabber();
       climb();
-      output();
+       output();
 	}
 
 	
    public void grabber() {
-	   if(isClosed)
-	         grab.set(0.25);
-	   else
-		   grab.set(0);
 	   
 	  if(stick.getRawButton(1)){	// trigger on joystick
-         grab.set(0.5);	
-         isClosed = true;
+         grabL.set(-0.2);
+         grabR.set(0.8);
       }
       else if(gamepad.getRawButton(8)){ 	// right trigger on gamepad
-         grab.set(-0.5);
-         isClosed = false;
+         grabL.set(-1);
+         grabR.set(-1);
+      }
+      else if(stick.getRawButton(2)) {
+    	  grabL.set(0.5);
+    	  grabR.set(0.5);
+      }
+      else {
+		   grabL.set(0);
+		   grabR.set(0); 
       }
       
    }
 	      
-      
-// code is commented out when and only when the encoders are not plugged in.
+// code for controlling fourbar operations
    public void fourBar(){
 
+	   /*if(goDown && !lowestBar.get()) {
+		   upperBar.set(-0.1);
+		   lowerBar(-0.1);
+	   }
+	   else
+		   goDown = false;*/
+	   
 	   changeBarMode();
 	   
 	   if (barMode && !articulating)
-		   fullBar(gamepad.getTwist());
+		   fullBar(-gamepad.getRawAxis(3));
 	   else
-		   topBar(gamepad.getTwist());
+		   topBar(-(gamepad.getRawAxis(3)));
+	   
+	   if(gamepad.getRawButton(3)) 
+		   goDown = true;
+	   
+	   if(lowestBar.get() == true)  {
+		   fakeEncoderDown = 0;
+		   fakeEncoderUp = 0;
+	   }
    }
    
    void changeBarMode() {
 	   if(gamepad.getRawButton(10) && !barModePressed) {
 		   barMode = !barMode;
 		   barModePressed = true;
-		   if(barMode)
-			   articulating = true;
+		   //if(barMode)
+			   //articulating = true;
 	   }
-	   else
-		   barModePressed = false;
 	   
-	   if(articulating) {
-		   if(lowEncoder.get() < upEncoder.get() - 1)
-			   lowerBar.set(0.1);
-		   else if(lowEncoder.get() > upEncoder.get() + 1)
-			   lowerBar.set(-0.1);
+	   /*if(articulating) {
+		   if(fakeEncoderDown < fakeEncoderUp - 1) {
+			   lowerBar(0.1);
+			   fakeEncoderDown++;
+		   }
+		   else if(fakeEncoderDown > fakeEncoderUp + 1) {
+			   lowerBar(-0.1);
+			   fakeEncoderDown--;
+		   }
 		   else
 			   articulating = false;
-	   }
+	   } */
    }
 
-
    public void topBar(double val) {
-	   if(val < 0 && upEncoder.get() < maxUp)
-		   upperBar.set(0.1);
-	   else if(val > 0 && upEncoder.get() > minUp)
-		   upperBar.set(-0.1);
+	   if(val < 0) {
+		   upperBar.set(0.5);
+		   fakeEncoderUp++;
+	   }
+	   else if(val > 0) {
+		   upperBar.set(-0.5);
+		   fakeEncoderUp--;
+	   }
 	   else
 		   upperBar.set(0);
    }
 
    public void fullBar(double val) {
 	   if(!articulating) {
-		   if(val < 0 && upEncoder.get() < maxUp) {
-			   upperBar.set(0.1);
-			   lowerBar.set(0.1);
+		   if(val < 0) {
+			   upperBar.set(0.5);
+			   lowerBar(0.5);
+			   fakeEncoderUp++;
+			   fakeEncoderDown++;
 		   }
-		   else if(val > 0 && upEncoder.get() > minUp) {
-			   upperBar.set(-0.1);
-			   lowerBar.set(-0.1);
+		   else if(val > 0 && !lowestBar.get()) {
+			   upperBar.set(-0.25);
+			   lowerBar(-0.25);
+			   fakeEncoderUp--;
+			   fakeEncoderDown--;
 		   }
 		   else {
 			   upperBar.set(0);
-			   lowerBar.set(0);
+			   lowerBar(0);
 		   }
 	   }
    }
    
+   // articulates both lower bar motors
+   void lowerBar(double val) {
+	   lowerBar.set(val);			// CIM motor is about 5 times as powerful as the Bosch motor
+	   //lowerBox.set(val);
+   }
+   
+   
    public void climb() {
-	   if(stick.getRawButton(2))
+	   if(stick.getRawButton(5))
 		   wench.set(1);
-	   else if(stick.getRawButton(5))
+	   else if(stick.getRawButton(6))
 		   wench.set(-1);
 	   else
-		   wench.set(0);
-	   
+		   wench.set(0);    
    }
    
 
@@ -514,65 +568,179 @@ public class Robot extends TimedRobot {
          }
       }
       if(autoStep == 7) { //moves the fourbar up
-         if(upEncoder.get() <= maxUp)
+         if(fakeEncoderUp <= maxBoth)
             topBar(0.5);
          else {
             autoStep++;
-            upEncoder.reset();
+            //fakeEncoderUp = 0; //why???
+            timer.reset();
+            timer.start();
          }
          drive(0, 0, 0);
       }
       if(autoStep == 8) { //expels the cube from the grabber.
-         int i = 0;
-         if(i <= 2000)
-            grab.set(-0.5);//do this for a few seconds
+         if(timer.get() < 1) {
+            grabL.set(-0.5);//do this for a few seconds
+            grabR.set(-0.5);
+         }
          else {
             autoStep++;
-            grab.set(0);
-            isClosed = false;
+            grabL.set(0);
+            grabR.set(0);
+            timer.stop();
          }
          drive(0, 0, 0);
       }
       if(autoStep == 9) { //moves the fourbar back down.
-         if(upEncoder.get() >= minUp)
+         if(fakeEncoderUp >= minBoth)
             topBar(-0.5);
          else {
             autoStep++;
-            upEncoder.reset();
-         }
+            //fakeEncoderUp = 0; //why???
+         } autoStep++;
          drive(0, 0, 0);
       }
       if(autoStep > 9)
          drive(0, 0, 0);       
    }
    
+   public void autoLine() {
+	      if (distFromEncoder() < 18.140666 * distRate)//move from alliance wall to the scale
+	         drive(0, 1, 0);
+	      else{
+	         autoStep++;
+	         resetEncoders();
+	      }
+	   }
+   
+   public void driveScale(char pos, char side) {
+	      if(autoStep == 2) {
+	         autoLine();
+	      }
+	      if(autoStep == 3) {
+	        if(pos == 'L') {
+	           if(side == 'L') {
+	              if (distFromEncoder() < 1.86 * distRate)   
+	                  //moving right to align with scale plate
+	                  drive(1,0,0);
+	              else {
+	                  drive(0,0,0);
+	                  autoStep++;
+	                  resetEncoders();
+	              }
+	           }
+	           else {
+	              if (distFromEncoder() < 15 * distRate)
+	                  drive(1,0,0);
+	              else {
+	                  drive(0,0,0);
+	                  autoStep++;
+	                  resetEncoders();
+	              }
+	           }
+	        }
+	        else {
+	           if(side == 'L') {
+	              if (distFromEncoder() > -15 * distRate) {
+	                  drive(-1,0,0);
+	              }
+	              else {
+	                  drive(0,0,0);
+	                  autoStep++;
+	                  resetEncoders();
+	              }
+	           }
+	           else {
+	             if (distFromEncoder() < 1.86 * distRate){  
+	                  //move left to align with right scale plate
+	                  drive(-1,0,0);
+	             }
+	             else{
+	                  drive(0,0,0);
+	                  autoStep++;
+	                  resetEncoders();
+	             }
+
+	           }
+	        }
+	      }
+	      if(autoStep == 4) { 
+	         if(fakeEncoderDown < maxBoth)
+	            fullBar(1);
+	         else
+	            autoStep++;
+	         drive(0, 0, 0);
+	      }
+	      if(autoStep == 5) {
+	         if (distFromEncoder() < 1.333 * distRate) {
+	            drive(0,0.5,0);
+	         }
+	         else {
+	            drive(0,0,0);
+	            autoStep++;
+	            resetEncoders();
+	            timer.reset();
+	            timer.start();
+	         }
+	      }
+	      if(autoStep == 6) {
+	         //let go of block
+	         if(timer.get() < 1) {
+	            grabR.set(-0.5);
+	            grabL.set(-0.5);
+	         }
+	         else {
+	            //reset distance from Encoder
+		        grabR.set(0);
+		        grabL.set(0);
+	        	 autoStep++;
+	            timer.stop();
+	         }
+	         drive(0, 0, 0);            
+	      }
+
+	   } 
+   
+   
    public void resetEncoders()
    {
-   	FRE.reset();
+   	   FRE.reset();
 	   FLE.reset();
 	   BRE.reset();
 	   BLE.reset();
    }
    
-   public static void displayEncoderVals(){
-      double[] vals = new double[4];
+   public void displayEncoderVals(){
+      /*double[] vals = new double[4];
       vals[0] = FRE.get();
       vals[1] = FLE.get(); 
       vals[2] = BRE.get(); 
       vals[3] = BLE.get(); 
       
-      for(int i = 0; i < vals.length; i
-    		  							++) {
+      for(int i = 0; i < vals.length; i++) {
          SmartDashboard.putNumber("Value of Encoder " + i, vals[i]);
-      }
- 
+      } */
+	   
+      SmartDashboard.putNumber("Value of Encoder FRE", FRE.get());
+      SmartDashboard.putNumber("Value of Encoder FLE", FLE.get());
+      SmartDashboard.putNumber("Value of Encoder BRE", BRE.get());
+      SmartDashboard.putNumber("Value of Encoder BLE", BLE.get());
    }
+   
    public void output() {
       // display the values from the encoder to the SmartDashboard
 	  displayEncoderVals();
 
 	  SmartDashboard.putString("GameData", DriverStation.getInstance().getGameSpecificMessage());	   
 	  SmartDashboard.putString("startPos", startLoc.getSelected().toString());
+      SmartDashboard.putNumber("Value of fake top bar encoder", fakeEncoderUp);
+      SmartDashboard.putNumber("Value of fake bottom bar encoder", fakeEncoderDown);
+      SmartDashboard.putBoolean("Is lower limit pressed", lowestBar.get());
+      SmartDashboard.putBoolean("fullbar mode", barMode);
+      
+      
+      SmartDashboard.putData("Starting Positions", startLoc);
+      SmartDashboard.putData("Target Objective", objectiveChoice);
       
    }
    
@@ -587,7 +755,7 @@ public class Robot extends TimedRobot {
              ```...--..```        `+dmyyyhmmmmmmmmmneedsmmmmmmhyy+                
       ``-/+syhhdmmmmmmmdhyso+++++sydms    hmmmmdmmmmtommmmmmmmmmmd`               
      /ydmmmmmmmmmmmmmmmmmmmmmmy:./oo/`    .+so/./hmmmstopmmquichem+               
-      -odmmmmmmmjaredmmmmmmmmh`                  .dmmmmmmmmmmmmmmdh               
+      -odmmmmmmmjaredmmmmmmmmh`                  .dmmmmmmeatermmmdh               
      .-`.+hmmmmmmismmmmmmmmmmms                  hmmmmmmmmmdhddy+-`               
     `odmmdhshmmmmmthemmmmmmmmmd/     `+shys/      odmmmmdy+-` ``                   
    `ymmmmmkhaimmmmmrealmmmmm:.      `hhailmmy      `-omm-                          
