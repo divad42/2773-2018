@@ -5,6 +5,7 @@
 //Updated grabber code to fix new model, as in removed "isClosed"
 //removed rotational acceleration
 
+
 package org.usfirst.frc.team2773.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -349,7 +350,7 @@ public class Robot extends TimedRobot {
    public double distFromEncoder() {
       return FLE.get();
    }
-   
+
 
    @Override
    public void teleopInit() {
@@ -491,7 +492,7 @@ public class Robot extends TimedRobot {
 	   else if(stick.getRawButton(6))
 		   wench.set(-1);
 	   else
-		   wench.set(0);    
+		   wench.set(0);
    }
    
 
@@ -709,22 +710,15 @@ public class Robot extends TimedRobot {
 	   BRE.reset();
 	   BLE.reset();
    }
+
    
-   public void displayEncoderVals(){
-      /*double[] vals = new double[4];
-      vals[0] = FRE.get();
-      vals[1] = FLE.get(); 
-      vals[2] = BRE.get(); 
-      vals[3] = BLE.get(); 
-      
-      for(int i = 0; i < vals.length; i++) {
-         SmartDashboard.putNumber("Value of Encoder " + i, vals[i]);
-      } */
-	   
+   public void displayEncoderVals(){ 
+	
       SmartDashboard.putNumber("Value of Encoder FRE", FRE.get());
       SmartDashboard.putNumber("Value of Encoder FLE", FLE.get());
       SmartDashboard.putNumber("Value of Encoder BRE", BRE.get());
       SmartDashboard.putNumber("Value of Encoder BLE", BLE.get());
+
    }
    
    public void output() {
