@@ -281,34 +281,28 @@ public class Robot extends TimedRobot {
    
    public void drive(double x, double y, double z) {
       
+	   
       // the robot smoothly accelerates at a rate determined by the magnitude of the
       // joystick's manipulation
+	  // if the joystick is in the resting position, setting the motor to zero
+	  // should cause the robot to drift.   
       
-      if(x > 0.3 && curXVel <= maxSpeed)
+	   
+      if(Math.abs(x) > 0.15 && Math.abs(curXVel) <= maxSpeed)
          curXVel += accel * x * 0.5;
-      
-      if(x < -0.3 && curXVel >= (-1 * maxSpeed))
-         curXVel += accel * x * 0.5;
+      else if(Math.abs(x) <= 0.15)
+    	  curXVel = 0;
          
-      if(y > 0.3 && curYVel <= maxSpeed)
+      if(Math.abs(y) > 0.15 && Math.abs(curYVel) <= maxSpeed)
          curYVel += accel * y * 0.5;
+      else if(Math.abs(y) <= 0.15)
+    	  curYVel = 0;
       
-      if(y < -0.3 && curYVel >= (-1 * maxSpeed))
-         curYVel += accel * y * 0.5;
-      
-      if(z > 0.3 || z < -0.3)
+      if(Math.abs(z) > 0.3)
     	  curRot = z; 
+      else
+    	  curRot = 0;
       
-      // if the joystick is in the resting position, setting the motor to zero
-      // should cause the robot to drift.   
-      if(x > -0.3 && x < 0.1)
-         curXVel = 0;
-         
-      if(y > -0.1 && y < 0.1)
-         curYVel = 0;
-      
-      if(z > -0.1 && z < 0.1)
-         curRot = 0;
       
       drive.driveCartesian( curYVel, curXVel, curRot * 0.3);
       
