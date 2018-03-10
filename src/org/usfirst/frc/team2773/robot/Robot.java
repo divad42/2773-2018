@@ -1,9 +1,5 @@
-// Version 1.0.1
-//Commented out fourbar encoders
-//Replaced fourbar encoders with integer values to update every time the fourbar speed is set
-//Added limit switch code to reset fake fourbar encoders
-//Updated grabber code to fix new model, as in removed "isClosed"
-//removed rotational acceleration
+// Version 1.0.2
+// Added a debug message, made various specific changes, bug fixes, and feature removals
 
 
 package org.usfirst.frc.team2773.robot;
@@ -92,7 +88,7 @@ public class Robot extends TimedRobot {
    public boolean barModePressed;
    public boolean articulating;
 
-   public Spark wench;
+   //public Spark wench;
    
    public Timer timer;
    
@@ -132,7 +128,7 @@ public class Robot extends TimedRobot {
 
       //4 Bar parts being declared
       lowerBar = new Spark(6);
-      lowerBar.setInverted(true);
+      lowerBar.setInverted(false);
       
       upperBar = new Spark(8);
       lowestBar = new DigitalOutput(8);
@@ -144,7 +140,7 @@ public class Robot extends TimedRobot {
       barModePressed = false;
       
       //Climber related data
-      wench = new Spark(4);
+      //wench = new Spark(4);
       
       //Constraints 
       maxBoth = 10000;
@@ -168,6 +164,8 @@ public class Robot extends TimedRobot {
       startLoc.addObject("Left", new Character('L'));
       startLoc.addObject("Right", new Character('R'));
       SmartDashboard.putData("Starting Positions", startLoc);
+      
+      autoStep = 0;
       
       /*THERE SHOULD BE NO Target Position Radio Buttons in SmartDashboard
       targetPos = new SendableChooser<>();
@@ -209,6 +207,15 @@ public class Robot extends TimedRobot {
 		objectInt = objectiveChoice.getSelected().intValue();		// whether we want the switch or scale
 		targetChar = DriverStation.getInstance().getGameSpecificMessage().charAt(objectInt);
 		
+		maxSpeed = 0.4; // how did we not do this before
+		
+		timer.start();
+		
+		fakeEncoderUp = 0;
+		fakeEncoderDown = 0;
+		
+		autoStep = 0;
+		
 		FRE.reset();
 		FLE.reset();
 		BRE.reset();
@@ -220,11 +227,17 @@ public class Robot extends TimedRobot {
 	 */
 	@Override
 	public void autonomousPeriodic() {
+		
+		output();
+		
 		if(autoStep == 0){
-			if(Timer.getMatchTime() < 3)
-				System.out.print("tAkInG a snOoZE");
-			else
+			if(timer.get() < 2 && startChar == 'C')
+				System.out.println("tAkInG a snOoZE");
+			else {
 				autoStep++;
+				timer.stop();
+				timer.reset();
+			}
 		}
 		if(autoStep == 1) {
 			if(Math.abs(distFromEncoders()) <= 7.5 * distRate && startChar == 'C')
@@ -232,14 +245,16 @@ public class Robot extends TimedRobot {
 			else {
 				autoStep++;
 				startChar = targetChar;
+				resetEncoders();
 			}
 		}
 		if(autoStep >= 2) {
-			if(objectInt == 1)
+			/*if(objectInt == 1)
 				driveScale(startChar, targetChar);
 			else if(objectInt == 0) 
-				driveSwitch(startChar, targetChar);
-			else
+				driveSwitch(startChar, targetChar); */
+			//else
+					if(autoStep == 2)
 				autoLine();
 				
 		}
@@ -251,6 +266,8 @@ public class Robot extends TimedRobot {
 			drive(0, 1, 0);
 		else
 			drive(0, -1, 0);
+		
+		System.out.println("moving from center");
 	}
 	
    
@@ -344,11 +361,11 @@ public class Robot extends TimedRobot {
    
    // I did not decide this
    public double distFromEncoders() {
-	   return FLE.getDistance();
+	   return FRE.getDistance();
    }
    
    public double distFromEncoder() {
-      return FLE.get();
+      return FRE.get();
    }
 
 
@@ -358,6 +375,7 @@ public class Robot extends TimedRobot {
 	   FLE.reset();
 	   BRE.reset();
 	   BLE.reset();
+	   barMode = false;
    }
    
    /**
@@ -366,12 +384,12 @@ public class Robot extends TimedRobot {
 	@Override
 	public void teleopPeriodic() {
 		
-      maxSpeed = (-stick.getThrottle() + 1) / 4;
+      maxSpeed = (-stick.getThrottle() + 1) / 2;
       
       drive(-stick.getY(), stick.getX(), stick.getTwist());
       fourBar();
       grabber();
-      climb();
+      //climb();
        output();
 	}
 
@@ -397,31 +415,18 @@ public class Robot extends TimedRobot {
       
    }
 	      
-// code for controlling fourbar operations
+// code for controlling fourbar operations during teleop
    public void fourBar(){
-
-	   /*if(goDown && !lowestBar.get()) {
-		   upperBar.set(-0.1);
-		   lowerBar(-0.1);
-	   }
+	   
+	   //changeBarMode();
+	   
+	   if (barMode )//&& !articulating)
+		   fullBar(gamepad.getRawAxis(3));
 	   else
-		   goDown = false;*/
+		   topBar((gamepad.getRawAxis(3)));
 	   
-	   changeBarMode();
-	   
-	   if (barMode && !articulating)
-		   fullBar(-gamepad.getRawAxis(3));
-	   else
-		   topBar(-(gamepad.getRawAxis(3)));
-	   
-	   if(gamepad.getRawButton(3)) 
-		   goDown = true;
-	   
-	   if(lowestBar.get() == true)  {
-		   fakeEncoderDown = 0;
-		   fakeEncoderUp = 0;
 	   }
-   }
+   
    
    void changeBarMode() {
 	   if(gamepad.getRawButton(10) && !barModePressed) {
@@ -429,7 +434,10 @@ public class Robot extends TimedRobot {
 		   barModePressed = true;
 		   //if(barMode)
 			   //articulating = true;
+	   } else if(!gamepad.getRawButton(10)) {
+		   barModePressed = false;
 	   }
+	   
 	   
 	   /*if(articulating) {
 		   if(fakeEncoderDown < fakeEncoderUp - 1) {
@@ -446,12 +454,12 @@ public class Robot extends TimedRobot {
    }
 
    public void topBar(double val) {
-	   if(val < 0) {
-		   upperBar.set(0.5);
+	   if(val > 0.15) {
+		   upperBar.set(0.48);
 		   fakeEncoderUp++;
 	   }
-	   else if(val > 0) {
-		   upperBar.set(-0.5);
+	   else if(val < -0.15) {
+		   upperBar.set(-0.48);
 		   fakeEncoderUp--;
 	   }
 	   else
@@ -460,17 +468,19 @@ public class Robot extends TimedRobot {
 
    public void fullBar(double val) {
 	   if(!articulating) {
-		   if(val < 0) {
-			   upperBar.set(0.5);
-			   lowerBar(0.5);
+		   if(val > 0.15) {
+			   /*upperBar.set(0.5);
+			   lowerBar(0.4);
 			   fakeEncoderUp++;
-			   fakeEncoderDown++;
+			   fakeEncoderDown++;*/
+			   System.out.println("positive");
 		   }
-		   else if(val > 0 && !lowestBar.get()) {
-			   upperBar.set(-0.25);
-			   lowerBar(-0.25);
+		   else if(val < -0.15) {
+			   /*upperBar.set(-0.25);
+			   lowerBar(-1.00);
 			   fakeEncoderUp--;
-			   fakeEncoderDown--;
+			   fakeEncoderDown--;*/
+			   System.out.println("negative");
 		   }
 		   else {
 			   upperBar.set(0);
@@ -482,10 +492,9 @@ public class Robot extends TimedRobot {
    // articulates both lower bar motors
    void lowerBar(double val) {
 	   lowerBar.set(val);			// CIM motor is about 5 times as powerful as the Bosch motor
-	   //lowerBox.set(val);
    }
    
-   
+ /*  
    public void climb() {
 	   if(stick.getRawButton(5))
 		   wench.set(1);
@@ -494,26 +503,28 @@ public class Robot extends TimedRobot {
 	   else
 		   wench.set(0);
    }
-   
+  */
 
    public void driveSwitch(char startPos, char switchSide) {
       if(autoStep == 2) { //moves the robot forwards to the middle of either side of the switch
-         if(distFromEncoders() <= 12.5 * distRate) //drive it forward regardless of the side
-            drive(0, 1, 0);
+         if(distFromEncoders() <= 11.59 * distRate) //drive it forward regardless of the side
+            drive(1, 0, 0);
          else { //increments autoStep
             autoStep++;
             resetEncoders();
+            drive(0, 0, 0);
          }
       }
       if(autoStep == 3) { //moves the robot past the switch if necessary.
          if(startPos == switchSide) 
             autoStep++;
          else {
-            if(distFromEncoders() <= 7 * distRate)
+            if(distFromEncoders() <= 5.75 * distRate)
                drive(1, 0, 0);
             else {
                autoStep++;
                resetEncoders();
+               drive(0, 0, 0);
             }
          }
       }
@@ -522,19 +533,21 @@ public class Robot extends TimedRobot {
             autoStep++;
          else {
             if(switchSide == 'R') {
-               if(distFromEncoders() >= -19 * distRate)
-                  drive(0, -1, 0);
+               if(distFromEncoders() >= -15.34 * distRate)
+                  drive(0, -1, 0); //don't know how negatives work when swapping x and y values
                else {
                   autoStep++;
                   resetEncoders();
+                  drive(0, 0, 0);
                }
             }
             else {
-               if(distFromEncoders() <= 19 * distRate)
+               if(distFromEncoders() <= 15.34 * distRate)
                   drive(0, 1, 0);
                else {
                   autoStep++;
                   resetEncoders();
+                  drive(0, 0, 0);
                }
             }
          }         
@@ -543,11 +556,12 @@ public class Robot extends TimedRobot {
          if(startPos == switchSide)  //increments autoStep because it is in position to rotate.
             autoStep++;
          else {
-            if(distFromEncoders() >= 7 * distRate)
+            if(distFromEncoders() >= -5.75 * distRate)
                drive(-1, 0, 0);
             else {
                autoStep++;
                resetEncoders();
+               drive(0, 0, 0);
             }
          }
       }    
@@ -558,6 +572,7 @@ public class Robot extends TimedRobot {
             else {
                autoStep++;
                resetEncoders();
+               drive(0, 0, 0);
             }
          else {
             if(distFromEncoders() >= -90 * degRate)
@@ -565,6 +580,7 @@ public class Robot extends TimedRobot {
             else {
                autoStep++;
                resetEncoders();
+               drive(0, 0, 0);
             }
          }
       }
@@ -576,11 +592,12 @@ public class Robot extends TimedRobot {
             //fakeEncoderUp = 0; //why???
             timer.reset();
             timer.start();
+            topBar(0);
          }
          drive(0, 0, 0);
       }
       if(autoStep == 8) { //expels the cube from the grabber.
-         if(timer.get() < 1) {
+         if(timer.get() < 0.25) {
             grabL.set(-0.5);//do this for a few seconds
             grabR.set(-0.5);
          }
@@ -596,8 +613,9 @@ public class Robot extends TimedRobot {
          if(fakeEncoderUp >= minBoth)
             topBar(-0.5);
          else {
-            autoStep++;
-            //fakeEncoderUp = 0; //why???
+            topBar(0);
+        	 autoStep++;
+            fakeEncoderUp = 0; //why???
          } autoStep++;
          drive(0, 0, 0);
       }
@@ -606,16 +624,18 @@ public class Robot extends TimedRobot {
    }
    
    public void autoLine() {
-	      if (distFromEncoder() < 18.140666 * distRate)//move from alliance wall to the scale
-	         drive(0, 1, 0);
-	      else{
+	      if (Math.abs(distFromEncoder()) < 2.5 * distRate) { //move from alliance wall to the scale
+	         drive(1, 0, 0);
+	         System.out.println("autoLine");
+	      } else {
 	         autoStep++;
 	         resetEncoders();
+	         drive(0, 0, 0);
 	      }
 	   }
    
    public void driveScale(char pos, char side) {
-	      if(autoStep == 2) {
+	      if(autoStep == 2) { //10 ft forward
 	         autoLine();
 	      }
 	      if(autoStep == 3) {
@@ -623,7 +643,7 @@ public class Robot extends TimedRobot {
 	           if(side == 'L') {
 	              if (distFromEncoder() < 1.86 * distRate)   
 	                  //moving right to align with scale plate
-	                  drive(1,0,0);
+	                  drive(0,1,0);
 	              else {
 	                  drive(0,0,0);
 	                  autoStep++;
@@ -632,7 +652,7 @@ public class Robot extends TimedRobot {
 	           }
 	           else {
 	              if (distFromEncoder() < 15 * distRate)
-	                  drive(1,0,0);
+	                  drive(0,1,0);
 	              else {
 	                  drive(0,0,0);
 	                  autoStep++;
@@ -643,7 +663,7 @@ public class Robot extends TimedRobot {
 	        else {
 	           if(side == 'L') {
 	              if (distFromEncoder() > -15 * distRate) {
-	                  drive(-1,0,0);
+	                  drive(0,-1,0);
 	              }
 	              else {
 	                  drive(0,0,0);
@@ -654,7 +674,7 @@ public class Robot extends TimedRobot {
 	           else {
 	             if (distFromEncoder() < 1.86 * distRate){  
 	                  //move left to align with right scale plate
-	                  drive(-1,0,0);
+	                  drive(0,-1,0);
 	             }
 	             else{
 	                  drive(0,0,0);
@@ -674,7 +694,7 @@ public class Robot extends TimedRobot {
 	      }
 	      if(autoStep == 5) {
 	         if (distFromEncoder() < 1.333 * distRate) {
-	            drive(0,0.5,0);
+	            drive(0.5,0,0);
 	         }
 	         else {
 	            drive(0,0,0);
@@ -736,7 +756,31 @@ public class Robot extends TimedRobot {
       SmartDashboard.putData("Starting Positions", startLoc);
       SmartDashboard.putData("Target Objective", objectiveChoice);
       
+      SmartDashboard.putNumber("Step", autoStep);
+      
+      SmartDashboard.putNumber("Timer:", timer.get());
+      
+      SmartDashboard.putNumber("Max Speed", maxSpeed);
    }
+   
+   
+   // this method prints values when the robot is disabled
+   @Override
+   public void disabledInit() {
+	   System.out.println("Front Right Encoder: " + FRE.get());
+	   System.out.println("Front Left Encoder: " + FLE.get());
+	   System.out.println("Back Right Encoder: " + BRE.get());
+	   System.out.println("Back Left Encoder: " + BLE.get());
+	   
+	   System.out.println("Fake Upper Encoder: " + fakeEncoderUp);
+	   System.out.println("Fake Lower Encoder: " + fakeEncoderDown);
+	   
+	   System.out.println("Autonomous Step: " + autoStep);
+	   
+	   System.out.println("X Velocity: " + curXVel);
+	   System.out.println("Y Velocity: " + curYVel);
+   }
+   
    
 }
 
