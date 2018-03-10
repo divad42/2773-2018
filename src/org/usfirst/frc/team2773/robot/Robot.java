@@ -43,12 +43,14 @@ public class Robot extends TimedRobot {
    public int objectInt;
    public boolean isSleep;
    
+   //Vect- I mean Victors
    public Victor FL;
    public Victor FR;
    public Victor BL;
    public Victor BR;
    public MecanumDrive drive;
    
+   //Super Ultra Important Epic Awesome One-Of-A-Kind Exclusive Encoders
    static public Encoder FLE;
    static public Encoder FRE;
    static public Encoder BLE;
@@ -70,6 +72,7 @@ public class Robot extends TimedRobot {
    public double distance;
    public int autoStep;
    
+   //Helps control the speed of the driver method
    public double curXVel;
    public double curYVel;
    public double curRot;
@@ -84,6 +87,7 @@ public class Robot extends TimedRobot {
    public Spark grabL;
    public Spark grabR;
    
+
    public boolean barMode;
    public boolean barModePressed;
    public boolean articulating;
@@ -136,6 +140,7 @@ public class Robot extends TimedRobot {
       
       fakeEncoderUp = 0;
       fakeEncoderDown = 0;
+
       barMode = false;
       barModePressed = false;
       
@@ -188,6 +193,7 @@ public class Robot extends TimedRobot {
       cameras.startAutomaticCapture(0).setResolution(1280, 720);
       //cameras.startAutomaticCapture(1).setResolution(1280, 720);
       
+
 	}
 
 	/**
@@ -220,6 +226,7 @@ public class Robot extends TimedRobot {
 		FLE.reset();
 		BRE.reset();
 		BLE.reset();
+
 	}
 
 	/**
@@ -258,6 +265,7 @@ public class Robot extends TimedRobot {
 				autoLine();
 				
 		}
+
       
 	}
 	
@@ -527,6 +535,7 @@ public class Robot extends TimedRobot {
                drive(0, 0, 0);
             }
          }
+
       }
       if(autoStep == 4) { //moving across the switch horizontally
          if(startPos == switchSide)
@@ -755,6 +764,7 @@ public class Robot extends TimedRobot {
       
       SmartDashboard.putData("Starting Positions", startLoc);
       SmartDashboard.putData("Target Objective", objectiveChoice);
+
       
       SmartDashboard.putNumber("Step", autoStep);
       
@@ -797,7 +807,7 @@ public class Robot extends TimedRobot {
      .-`.+hmmmmmmismmmmmmmmmmms                  hmmmmmmmmmdhddy+-`               
     `odmmdhshmmmmmthemmmmmmmmmd/     `+shys/      odmmmmdy+-` ``                   
    `ymmmmmkhaimmmmmrealmmmmm:.      `hhailmmy      `-omm-                          
-   smmmmmmmismmmmmmmmvpmmmmm        :mmthemmm`       -mm:                          
+   smsocksmismmmmmmmmvpmmmmm        :mmthemmm`       -mm:                          
   `mmmmmmmmmbadmmmmmmmmmmmmmyo/`     ommorbd/     `/oymd.                          
   -mmmsquidmmmmmmmmmmmmyommmmmms      `:+/:`     `dmds+.                           
   `dmmmtastesmmmmmmmd/`hmmmmmd:                  smm/                             
