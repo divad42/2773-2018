@@ -270,7 +270,7 @@ public class Robot extends TimedRobot {
 		}
 
 	}
-	
+
 	public void moveFromCenter() {
 		if (targetChar == 'R')
 			drive(0, 1, 0);
