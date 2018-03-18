@@ -1,5 +1,5 @@
-// Version 1.0.2
-// Added a debug message, made various specific changes, bug fixes, and feature removals
+// Version 1.0.3
+// Updated some constants, made distFromEncoders more creative, and output the speed of the drive encoders
 
 package org.usfirst.frc.team2773.robot;
 
@@ -25,7 +25,7 @@ import edu.wpi.first.wpilibj.CameraServer;
  */
 public class Robot extends TimedRobot {
 	public final double TILE_DISTANCE_RATE_COMPBOT = 330.861363636; // in degrees per foot
-	public final double TILE_DISTANCE_RATE_PRACTICEBOT = 49.23532196964286;
+	public final double TILE_DISTANCE_RATE_PRACTICEBOT = 25.0 / 3;
 	public final double COMP_DISTANCE_RATE = 1;
 	public final double TILE_ROTATION_RATE_PRACTICEBOT = 1;
 	public static double distRate; // = TILE or COMP rate
@@ -369,12 +369,30 @@ public class Robot extends TimedRobot {
 
 	// I did not decide this
 	public double distFromEncoders() {
-		return FRE.getDistance();
+		 int count = 0;
+		 double val = 0.0; //DOUBLE DOUBLE DOUBLE THIS IS A DOUBLE
+		 if(FRE.getDistance() != 0){
+			count++;
+		 	val += FRE.getDistance();
+		 }
+		 if(FLE.getDistance() != 0){
+			count++;
+		 	val += FLE.getDistance();
+		 }
+		 if(BRE.getDistance() != 0){
+			count++;
+			val += BRE.getDistance();
+		 }
+		 if(BLE.getDistance() != 0){
+			count++;
+			val += BLE.getDistance();
+		 }
+		 if(val == 0)
+			return val;
+		 return val/count;
 	}
 
-	public double distFromEncoder() {
-		return FRE.get();
-	}
+	
 
 	@Override
 	public void teleopInit() {
@@ -400,7 +418,7 @@ public class Robot extends TimedRobot {
 	@Override
 	public void teleopPeriodic() {
 
-		maxSpeed = (-stick.getThrottle() + 1) / 2;
+		maxSpeed = (-stick.getRawAxis(2) + 1) / 2;
 
 		drive(-stick.getY(), stick.getX(), yFromButtons());
 		fourBar();
@@ -426,7 +444,7 @@ public class Robot extends TimedRobot {
 		}
 
 	}
-
+	
 	// code for controlling fourbar operations during teleop
 	public void fourBar() {
 
@@ -615,7 +633,7 @@ public class Robot extends TimedRobot {
 	}
 
 	public void autoLine() {
-		if (Math.abs(distFromEncoder()) < 10 * distRate) { // move from alliance wall to the scale
+		if (Math.abs(distFromEncoders()) < 10 * distRate) { // move from alliance wall to the scale
 			drive(0.5, 0, 0);
 			System.out.println("autoLine");
 		} else {
@@ -632,7 +650,7 @@ public class Robot extends TimedRobot {
 		if (autoStep == 3) {
 			if (pos == 'L') {
 				if (side == 'L') {
-					if (distFromEncoder() < 1.86 * distRate)
+					if (distFromEncoders() < 1.86 * distRate)
 						// moving right to align with scale plate
 						drive(0, 1, 0);
 					else {
@@ -641,7 +659,7 @@ public class Robot extends TimedRobot {
 						resetEncoders();
 					}
 				} else {
-					if (distFromEncoder() < 15 * distRate)
+					if (distFromEncoders() < 15 * distRate)
 						drive(0, 1, 0);
 					else {
 						drive(0, 0, 0);
@@ -651,7 +669,7 @@ public class Robot extends TimedRobot {
 				}
 			} else {
 				if (side == 'L') {
-					if (distFromEncoder() > -15 * distRate) {
+					if (distFromEncoders() > -15 * distRate) {
 						drive(0, -1, 0);
 					} else {
 						drive(0, 0, 0);
@@ -659,7 +677,7 @@ public class Robot extends TimedRobot {
 						resetEncoders();
 					}
 				} else {
-					if (distFromEncoder() < 1.86 * distRate) {
+					if (distFromEncoders() < 1.86 * distRate) {
 						// move left to align with right scale plate
 						drive(0, -1, 0);
 					} else {
@@ -679,7 +697,7 @@ public class Robot extends TimedRobot {
 			drive(0, 0, 0);
 		}
 		if (autoStep == 5) {
-			if (distFromEncoder() < 1.333 * distRate) {
+			if (distFromEncoders() < 1.333 * distRate) {
 				drive(0.5, 0, 0);
 			} else {
 				drive(0, 0, 0);
@@ -746,9 +764,11 @@ public class Robot extends TimedRobot {
 		SmartDashboard.putData("Starting Positions", startLoc);
 		SmartDashboard.putData("Target Objective", objectiveChoice);
 
+		SmartDashboard.putNumber("Average of Drive Encoders", distFromEncoders());
+		
 		SmartDashboard.putNumber("Step", autoStep);
 
-		SmartDashboard.putNumber("Timer:", timer.get());
+		SmartDashboard.putNumber("Timer", timer.get());
 
 		SmartDashboard.putNumber("Max Speed", maxSpeed);
 	}
