@@ -631,6 +631,81 @@ public class Robot extends TimedRobot {
 		if (autoStep > 9)
 			drive(0, 0, 0);
 	}
+	
+	public void driveSwitchShort(char startPos, char switchSide) { //shortened version of the driveSwitchMethod. DIFFERENT FUNCITON!
+		if(autoStep == 2) { //Moves the robot horizontally to the appropriate position.
+			if(startPos == 'C') {
+				if(switchSide == 'R') {
+					if(distFromEncoders() <= 5.84 * distRate)
+						drive(0, 1, 0);
+					else 
+						autoReset();
+				}
+				else {
+					if(distFromEncoders() >= -5.84 * distRate)
+						drive(0, -1, 0);
+					else
+						autoReset();
+				}
+			}
+			else {
+				if(startPos == 'R') {
+					if(switchSide == startPos) {
+						if(distFromEncoders() >= -5.5 * distRate)
+							drive(0, -1, 0);
+						else
+							autoReset();
+					}
+					else {
+						if(distFromEncoders() >= -16.5 * distRate)
+							drive(0, -1, 0);
+						else
+							autoReset();
+					}
+				}
+				else {
+					if(switchSide == startPos) {
+						if(distFromEncoders() <= 5.5 * distRate)
+							drive(0, 1, 0);
+						else
+							autoReset();	
+					}
+					else {
+						if(distFromEncoders() <= 16.5 * distRate)
+							drive(0, 1, 0);
+						else
+							autoReset();
+					}
+						
+				}
+				
+			}
+			
+		}
+		if(autoStep == 3) { //drives the robot forwards to meet the switch
+			if(distFromEncoders() <= 11.667 * distRate)
+				drive(1, 0, 0)
+			else
+				autoReset();
+		}
+		if(autoStep == 4) { //drops the cube
+			int i = 0;
+			if (i <= 2000)
+				grab.set(-0.5);// do this for a few seconds
+			else {
+				autoStep++;
+				grab.set(0);
+				isClosed = false;
+			}
+		drive(0, 0, 0);
+		}
+	}
+	
+	public void autoReset() {
+		drive(0, 0, 0);
+		resetEncoders();
+		autoStep++;
+	}
 
 	public void autoLine() {
 		if (Math.abs(distFromEncoders()) < 10 * distRate) { // move from alliance wall to the scale
