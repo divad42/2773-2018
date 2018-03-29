@@ -15,6 +15,9 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.CameraServer;
+//import org.opencv.videoio.VideoCapture;
+//import org.opencv.core.Mat;
+
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -89,14 +92,19 @@ public class Robot extends TimedRobot {
 	public boolean barModePressed;
 	public boolean articulating;
 	
+	public boolean cubeMode;
+	public boolean cubeModePressed;
+	
 	public DigitalInput lowMin;
 	public DigitalInput upMin;
 
 	// public Spark wench;
 
 	public Timer timer;
-
+	int i;
 	public CameraServer cameras;
+	
+	 
 
 	/**
 	 * This function is run when the robot is first started up and should be used
@@ -132,9 +140,11 @@ public class Robot extends TimedRobot {
 
 		// 4 Bar parts being declared
 		lowerBar = new Spark(6);
-		lowerBar.setInverted(true);
+		lowerBar.setInverted(false);
 
 		upperBar = new Spark(8);
+		upperBar.setInverted(true);
+		
 		goDown = false;
 
 		fakeEncoderUp = 0;
@@ -143,6 +153,9 @@ public class Robot extends TimedRobot {
 		barMode = false;
 		barModePressed = false;
 
+		cubeMode = true;
+		cubeModePressed = false;
+		
 		// Climber related data
 		// wench = new Spark(4);
 
@@ -196,8 +209,20 @@ public class Robot extends TimedRobot {
 		// the "setResolution" method.
 		cameras = CameraServer.getInstance();
 		cameras.startAutomaticCapture(0).setResolution(1280, 720);
-		//cameras.startAutomaticCapture(1).setResolution(1280, 720);
-
+		cameras.startAutomaticCapture(1).setResolution(1280, 720);
+		
+		
+		// vision
+		
+		/*GripPipeline pipe = new GripPipeline();
+		Mat m  = new Mat();
+		cameras.getVideo().grabFrame(m);*/
+		//VideoCapture cap = new VideoCapture();
+		
+		
+		/*pipe.process(m);
+		System.out.println("VISION TEST VAR: PREPARE FOR LONG OUTPUT \n" + pipe.filterContoursOutput());*/
+		
 	}
 
 	/**
@@ -231,7 +256,8 @@ public class Robot extends TimedRobot {
 		FLE.reset();
 		BRE.reset();
 		BLE.reset();
-
+		
+		i = 0;
 	}
 
 	/**
@@ -252,7 +278,7 @@ public class Robot extends TimedRobot {
 			timer.reset();
 			// }
 		}
-		if (autoStep == 1) {
+		if (autoStep == 1 && objectInt != 0) {
 			moveFromCenter();
 		}
 		
@@ -278,8 +304,10 @@ public class Robot extends TimedRobot {
 	public void moveFromCenter() {
 		if (targetChar == 'R')
 			driveDist(1, true, 7.5, 1);
-		else
+		else if (targetChar == 'L')
 			driveDist(1, true, 7.5, -1);
+		else
+			autoStep++;
 
 		System.out.println("moving from center");
 	}
@@ -422,9 +450,12 @@ public class Robot extends TimedRobot {
 	@Override
 	public void teleopPeriodic() {
 
-		maxSpeed = (-stick.getRawAxis(2) + 1) / 2;
+		double x = (-stick.getRawAxis(2) + 1) / 2;
+		
+		maxSpeed = gamepad.getRawButton(3) ? 0.2 : x;
 
-		drive(-stick.getY(), stick.getX(), yFromButtons());
+		
+		drive(-stick.getY(), stick.getX(), stick.getZ());
 		fourBar();
 		grabber();
 		// climb();
@@ -452,13 +483,22 @@ public class Robot extends TimedRobot {
 	// code for controlling fourbar operations during teleop
 	public void fourBar() {
 
-		changeBarMode();
+		// old code based on barMode
+		/*changeBarMode();
 		
 		if (barMode && !articulating)
-			fullBar(gamepad.getRawAxis(3));
+			fullBar( - gamepad.getRawAxis(3) );
 		else
-			topBar((gamepad.getRawAxis(3)));
-
+			topBar( - gamepad.getRawAxis(3) );*/
+		
+		lowBar( - gamepad.getRawAxis(1));
+		topBar( - gamepad.getRawAxis(3));
+		
+		if(gamepad.getPOV() == 0)
+			fullBar(1);
+		else if(gamepad.getPOV() == 180)
+			fullBar(-1);
+		
 	}
 
 	void changeBarMode() {
@@ -484,43 +524,68 @@ public class Robot extends TimedRobot {
 		}*/
 		 
 	}
-
-	public void topBar(double val) {
-		if (val > 0.15 && upMin.get()) {
-			upperBar.set(0.24);
+	void changeCubeMode() {
+		if (gamepad.getRawButton(9) && !cubeModePressed) { //eventually make limit switch?
+			cubeMode = !cubeMode;
+			cubeModePressed = true;
+		} else if (!gamepad.getRawButton(9)) {
+			cubeModePressed = false;
+		}
+	}
+	
+	void topBar(double val) {
+		
+		lowerBar.set(0.15);
+		
+		if (val < -0.15) { // POSITIVE IS UP
+			if(cubeMode)
+				upperBar.set(0.60);
+			else
+				upperBar.set(0.55);
+			
 			fakeEncoderUp++;
 			System.out.println("upper bar positive");
-		} else if (val < -0.15) {
-			upperBar.set(-0.48);
+			
+			
+		}
+		
+		else if (val > 0.15 && upMin.get()) { // NEGATIVE IS DOWN
+			upperBar.set(-0.225);
 			fakeEncoderUp--;
 			System.out.println("upper bar negative");
-		} else
+			
+		}
+		
+		else
 			upperBar.set(0);
 	}
 
 	public void fullBar(double val) {
-		if (!articulating) {
-			if (val > 0.15) {
-				if(upMin.get()) {
-					upperBar.set(0.24);
-					fakeEncoderUp++;
-				}
-				if(lowMin.get()) {
-					lowerBar.set(0.2);
-					fakeEncoderDown++;
-				}
-				System.out.println("full bar positive");
-			} else if (val < -0.15) {
-				 upperBar.set(-0.48);
-				 lowerBar.set(-0.9);
-				 fakeEncoderUp--;
-				 fakeEncoderDown--;
-				System.out.println("full bar negative");
-			} else {
+		topBar(val);
+		lowBar(val);
+	}
+	public void lowBar(double val) {
+		//if (!articulating) {
+			
+			if (val > 0.15) { // POSITIVE IS UP
+				 
+				lowerBar.set(1);
+				fakeEncoderDown--;
+				
+				System.out.println("lower bar positive");
+			} 
+			else if (val < -0.15 && lowMin.get()) { // NEGATIVE IS DOWN
+				
+				lowerBar.set(-0.4);
+				fakeEncoderDown++;
+					
+				System.out.println("lower bar negative");
+			} 
+			else {
 				upperBar.set(0);
 				lowerBar.set(0);
 			}
-		}
+		//}
 	}
 
 	// articulates both lower bar motors
@@ -642,12 +707,13 @@ public class Robot extends TimedRobot {
 			
 		}
 		if(autoStep == 3) { //drives the robot forwards to meet the switch
-			driveDist(0, true, 11.667, 1);
+			driveDist(0, true, 9.5, 1);
 		}
 		if(autoStep == 4) { //drops the cube
-			int i = 0;
-			if (i <= 2000)
+			if (i <= 2000) {
 				grab(-0.5);// do this for a few seconds
+				i++;
+			}
 			else {
 				autoStep++;
 				grab(0);
@@ -679,9 +745,11 @@ public class Robot extends TimedRobot {
 		
 		if (axis == 0) {
 			rate = rateY;
-		} else if (axis == 1) {
+		} 
+		else if (axis == 1) {
 			rate = rateX;
-		} else {
+		} 
+		else {
 			rate = rateRot;	
 		}
 		
@@ -693,7 +761,9 @@ public class Robot extends TimedRobot {
 			} else {
 				drive(0, 0, pow);
 			}
-		} else {
+		} 
+		
+		else {
 			drive(0, 0, 0);
 			if(step) {
 				autoStep ++;
@@ -786,8 +856,8 @@ public class Robot extends TimedRobot {
 		SmartDashboard.putString("startPos", startLoc.getSelected().toString());
 		SmartDashboard.putNumber("Value of fake top bar encoder", fakeEncoderUp);
 		SmartDashboard.putNumber("Value of fake bottom bar encoder", fakeEncoderDown);
-		SmartDashboard.putBoolean("Is lower limit pressed", lowMin.get());
-		SmartDashboard.putBoolean("Is upper limit pressed", upMin.get());
+		SmartDashboard.putBoolean("Is lower limit pressed", !lowMin.get());
+		SmartDashboard.putBoolean("Is upper limit pressed", !upMin.get());
 		SmartDashboard.putBoolean("fullbar mode", barMode);
 
 		SmartDashboard.putData("Starting Positions", startLoc);
@@ -806,11 +876,18 @@ public class Robot extends TimedRobot {
 	public void testInit() {
 		resetEncoders();
 		maxSpeed = 1;
+		autoStep = 0;
 	}
 	
 	@Override
 	public void testPeriodic() {
-		driveDist(0, true, 10, 0.5);
+		
+		driveDist(0, false, 10, 0.25);
+		output();
+		displayEncoderVals();
+		
+		// for vision
+		
 	}
 
 	// this method prints values when the robot is disabled
